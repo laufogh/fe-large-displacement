@@ -1,0 +1,11 @@
+* text=auto
+
+*.f    text eol=lf
+*.for  text eol=lf
+*.inc  text eol=lf
+*.py   text eol=lf
+*.md   text eol=lf
+
+*.odb  binary
+*.pdf  binary
+*.png  binary

@@ -1,0 +1,98 @@
+# ---------------------------------------------------------------------------
+# Abaqus session / runtime artifacts
+# ---------------------------------------------------------------------------
+abaqus.rpy
+abaqus.rpy.*
+abaqus_acis.log
+abaqus.env
+abaqusis.env
+explicitU*.env
+*.rec
+*.simlog
+*.simdir/
+
+# ---------------------------------------------------------------------------
+# Abaqus job files - ALL regenerable from the scripts in this repo.
+# Nothing that an analysis produces belongs in version control.
+# ---------------------------------------------------------------------------
+*.odb
+*.inp
+*.dat
+*.msg
+*.msg.*
+*.sta
+*.com
+*.log
+*.prt
+*.res
+*.mdl
+*.stt
+*.sel
+*.abq
+*.pac
+*.cid
+*.ipm
+*.lck
+*.023
+*.sim
+*.SMABulk
+*.SMAFocus
+*.SMAManifest
+*.SMAPodOutput
+explicit_*.env
+
+# Compiled subroutine leftovers
+*.obj
+*.mod
+*.o
+*.a
+*.dll
+*.exe
+standardU.*
+explicitU.*
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+*.pyc
+*.pyo
+__pycache__/
+.venv/
+venv/
+
+# ---------------------------------------------------------------------------
+# Local scratch / run directories
+# ---------------------------------------------------------------------------
+run/
+runs/
+scratch/
+_scratch/
+out/
+results/
+
+# ---------------------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+.cursor/
+.claude/
+.skills/
+.agents/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---------------------------------------------------------------------------
+# Exceptions
+# ---------------------------------------------------------------------------
+# Test-agent reports ARE part of the repository -- they are the record of what
+# was actually run and on what machine. Only the job files inside them are not.
+!briefs/results/
+!briefs/results/**
+briefs/results/**/*.odb
+briefs/results/**/*.inp
+
+# Small reference decks that are part of the teaching material must be
+# force-added:  git add -f examples/*/reference/*.inp
+!examples/**/reference/*.inp

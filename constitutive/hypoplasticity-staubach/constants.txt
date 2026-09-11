@@ -1,0 +1,40 @@
+# Hypoplasticity Material Constants for Ottawa F65 Sand
+# Based on von Wolffersdorff (1996) hypoplastic model
+# 
+# Format: One constant per line
+# Lines starting with # or // are comments and will be ignored
+# 
+# Reference: Adapted from (Fasano, Table 4) for Ottawa F65 sand
+# Date: 2026-02-14
+
+MatP%phi      = props(1)        ! friction angle (degree)
+MatP%nu       = props(2)        ! poisson's ratio for increased shear stiffness
+MatP%bauerHs  = props(3)        ! granular hardness
+MatP%bauerN   = props(4)        ! exponent in Bauer's compression rule
+MatP%ed0      = props(5)        ! min. void ratio at p=0
+MatP%ec0      = props(6)        ! crit. void ratio at p=0
+MatP%ei0      = props(7)        ! max void ratio at p=0 (isotropic compresison)
+MatP%alpha    = props(8)        ! baro-pykno exponent for  f_d
+MatP%beta     = props(9)        ! baro-pykno exponent for f_e
+MatP%m_T      = props(10)       ! stiffness increase 90 deg of the previous strain path
+MatP%m_R      = props(11)       ! stiffness increase 180 deg of the previous strain path
+MatP%Rmax     = props(12)       ! Maximum radius of the elastic integranular strain
+MatP%betaR    = props(13)       ! Exponent
+MatP%Chi      = props(14)       ! Exponent
+MatP%Kw       = props(15)       ! Bulk modulus of pore water for ideal undrained simulations
+
+0.5563   // phi - friction angle (rad)
+0.30  // nu - Poisson's ratio [-] (assumed)
+170.0d6 // hs - Granular hardness [Pa]
+0.53   // n - Exponent controlling pressure dependency [-]
+0.482   // e_d0 - Min. void ratio at zero pressure [-]
+0.785   // e_c0 - Crit. void ratio at zero pressure [-]
+0.936   // e_i0 - Max. void ratio at zero pressure [-]
+0.13   // alpha - Model constant [-]  - changed
+2.5   // beta - Model constant [-] 
+1.5   // m_T - Exponent for tangential stiffness [-] - changed
+2.0   // m_R - Exponent for normal stiffness [-] - changed
+0.00010   // R - Intergranular strain parameter (R_max) [-] - changed
+0.400000   // beta_R - Intergranular strain parameter [-]
+1.000000   // Chi - Intergranular strain parameter [-]
+0.0        // Bulk modulus of pore water for ideal undrained simulations

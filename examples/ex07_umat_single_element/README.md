@@ -1,0 +1,42 @@
+# Example 07 - single-element constitutive check
+
+Verify a UMAT/VUMAT on one element, in seconds, before putting it in a 50 000-element analysis where debugging it costs weeks.
+
+```bash
+set FLD_WORKDIR=C:\abq\run
+abaqus cae noGUI=examples/ex07_umat_single_element/model.py
+```
+
+Add `set FLD_SUBMIT=0` to build and verify the decks without solving.
+
+## Cases
+
+| id | configuration |
+|---|---|
+| `oedo` | one-dimensional compression |
+| `triax` | drained triaxial compression at constant cell pressure |
+| `cyc` | strain cycles - unload-reload and small-strain stiffness |
+
+Run a subset with `set FLD_CASES=A,C`.
+
+## What to expect
+
+Each path runs in both Abaqus/Standard (UMAT) and Abaqus/Explicit (VUMAT). For a rate-independent model the two stress paths must lie on top of each other. With no subroutine configured it falls back to the built-in Mohr-Coulomb model, which still exercises the whole harness.
+
+## What to look at
+
+* S33 against LE33, implicit and explicit overlaid, per path
+* the `finite` column - Abaqus/Explicit integrates NaN happily to the end
+* the `cyc` path especially: unload-reload is where ports diverge
+
+## Note
+
+Configure with `FLD_UMAT_IMPLICIT`, `FLD_UMAT_EXPLICIT`, `FLD_UMAT_CONSTANTS` and `FLD_UMAT_NSDV`. Getting `*Depvar` wrong, or leaving state variables uninitialised, produces NaN or silent corruption - never an error.
+
+## Reading
+
+* [06-constitutive-models.md](../../docs/06-constitutive-models.md)
+* [README.md](../../constitutive/README.md)
+
+The full explanation is the module docstring at the top of
+[`model.py`](model.py) - it is written to be read.
