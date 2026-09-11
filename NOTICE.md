@@ -8,9 +8,8 @@ repository scaffolding.
 
 It does **not** cover everything under `constitutive/`. Each subdirectory there
 carries its own licence and provenance file, and those terms govern. This file
-summarises what
-is there and under what terms; the `PROVENANCE.md` in each subdirectory is
-authoritative.
+summarises what is there and under what terms; the `PROVENANCE.md` in each
+subdirectory is authoritative.
 
 ---
 
