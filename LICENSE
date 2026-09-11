@@ -19,14 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
--------------------------------------------------------------------------------
-SCOPE NOTE
-
-The MIT licence above covers the original work in this repository: the Abaqus
-Python model-build scripts, the helper library in `lib/`, the documentation in
-`docs/`, the agent briefs in `briefs/` and the tooling in `tools/`.
-
-It does NOT cover the third-party constitutive-model source distributed under
-`constitutive/`. Each subdirectory there carries its own licence and provenance
-file, and those terms govern. See NOTICE.md for the summary.

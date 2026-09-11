@@ -1,10 +1,15 @@
 # Third-party notices
 
-The `LICENSE` at the root of this repository (MIT) covers the original work here:
-`docs/`, `examples/`, `lib/`, `tools/`, `briefs/`, and the repository scaffolding.
+## Scope of the root licence
 
-It does **not** cover everything under `constitutive/`. This file summarises what
-is there and under what terms. The `PROVENANCE.md` in each subdirectory is
+The `LICENSE` at the root of this repository is the MIT licence, and it covers
+the original work here: `docs/`, `examples/`, `lib/`, `tools/`, `briefs/` and the
+repository scaffolding.
+
+It does **not** cover everything under `constitutive/`. Each subdirectory there
+carries its own licence and provenance file, and those terms govern. This file
+summarises what
+is there and under what terms; the `PROVENANCE.md` in each subdirectory is
 authoritative.
 
 ---
