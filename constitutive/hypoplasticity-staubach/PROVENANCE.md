@@ -48,6 +48,12 @@ implementation is not the model.
 research programme. It is included so the examples run, not because it applies to
 your soil.
 
+The file here is a set of constants for **Ottawa F65 sand**, adapted from
+Fasano (Table 4) for the von Wolffersdorff (1996) hypoplastic model, with
+several parameters retuned -- the retuned ones are marked `- changed` in the
+file. The intergranular-strain parameters in particular are a working
+calibration, not a published one.
+
 Using someone else's hypoplastic constants for a different sand is not a small
 approximation — the model is state-dependent, and the constants encode the
 critical state line, the granular hardness and the intergranular strain
