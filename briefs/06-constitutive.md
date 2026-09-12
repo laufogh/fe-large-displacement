@@ -49,22 +49,7 @@ Then:
 * pay particular attention to `cyc`: unload-reload is where intergranular-strain
   ports usually diverge.
 
-## Step 3 - the Bolton USDFLD
-
-`constitutive/bolton-usdfld/usdfld.for` is a different kind of thing: it drives
-the *built-in* Mohr-Coulomb model through field variables, and needs the material
-table defined as field-variable dependent. Example 07 does not wire this up.
-
-**Suggested work item:** add a `soil_model=bolton` option to `fldlib.materials`
-building a `*Mohr Coulomb` table dependent on field variables 2 and 3, and a case
-in example 07 that exercises it. Small and genuinely useful.
-
-Note the step-number dependence: the subroutine keys off `KSTEP = 1` for the
-geostatic step and `KSTEP = 2` for loading. Example 07 has one step. Decide
-whether to add a dummy first step or to generalise the subroutine, and say which.
-
 ## Report
 
 The determined `*Depvar` count and how you determined it, the SDVINI answer for
-both solvers, the stress-path overlays, the finite-check results, and a
-recommendation on the Bolton wiring.
+both solvers, the stress-path overlays, and the finite-check results.

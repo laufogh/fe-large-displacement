@@ -37,15 +37,6 @@ contents and their licences. In summary:
 |---|---|---|
 | Hypoplasticity with intergranular strain (Niemunis-Herle), dry/uncoupled implementation | UMAT + VUMAT | `constitutive/hypoplasticity-staubach/` (GPL-3.0) |
 | Mohr-Coulomb with exact stress return and corner handling (Clausen) | UMAT + VUMAT | `constitutive/mohr-coulomb-clausen/` (custom permission; three citations required) |
-| Bolton stress-dependent friction/dilation via field variables | USDFLD | `constitutive/bolton-usdfld/` |
-
-The Bolton USDFLD is worth a word: it is not a constitutive model at all, but a
-cheap trick that makes the *built-in* Mohr-Coulomb model stress-dependent by
-computing φ and ψ from the current mean stress at each integration point using
-Bolton's relative dilatancy index. It costs almost nothing, needs no state
-variables, and gets you a large part of the way from "constant φ" to "sand".
-Start there before committing to a full state-dependent model.
-
 ## The workflow that works
 
 ### 1. Verify the subroutine on one element first

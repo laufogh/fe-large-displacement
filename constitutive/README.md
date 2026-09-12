@@ -7,7 +7,6 @@
 | Directory | Model | Licence | Status |
 |---|---|---|---|
 | [`hypoplasticity-staubach/`](hypoplasticity-staubach/) | Hypoplasticity with intergranular strain (Niemunis–Herle), UMAT + VUMAT | **GPL-3.0** | included |
-| [`bolton-usdfld/`](bolton-usdfld/) | Stress-dependent φ and ψ for the built-in Mohr-Coulomb, via USDFLD | MIT | included |
 | [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb and Tresca with exact stress return, UMAT + VUMAT | originals: custom permission and three citations; adapter/tests: MIT | included; Abaqus verification pending |
 
 ## Which one do you need?
@@ -19,14 +18,12 @@ mesh do not care what the constitutive model is.
 
 Then, roughly in order of effort:
 
-1. **Bolton USDFLD.** Makes the built-in model stress-dependent. No state
-   variables, no initialisation, negligible cost, no NaN risk. This is the right
-   first step and it is often enough for an installation-resistance question.
-2. **Clausen Mohr-Coulomb.** Same constitutive model as the built-in one, but
+1. **Clausen Mohr-Coulomb.** Same constitutive model as the built-in one, but
    with exact return to the edges and the apex of the yield surface. Matters for
    penetration problems, where many integration points near the tip sit exactly
-   on an edge.
-3. **Hypoplasticity with intergranular strain.** A genuinely state-dependent
+   on an edge. No state variables and no initialisation, so it is the right first
+   step away from the built-in model.
+2. **Hypoplasticity with intergranular strain.** A genuinely state-dependent
    model: critical state, dilatancy evolution, small-strain stiffness and cyclic
    memory. This is what you need for anything involving installation history,
    cyclic loading, or plug densification. It is also 5–20× the cost per

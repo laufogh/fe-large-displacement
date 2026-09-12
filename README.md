@@ -157,7 +157,6 @@ and provenance:
 | Directory | Licence |
 |---|---|
 | `constitutive/hypoplasticity-staubach/` | **GPL-3.0** (© Patrick Staubach; tensor tools © A. Niemunis) |
-| `constitutive/bolton-usdfld/` | MIT |
 | `constitutive/mohr-coulomb-clausen/` | Original sources: custom permission and mandatory three-paper citation — © Johan Clausen; repository-authored adapter/tests: MIT |
 
 See [`NOTICE.md`](NOTICE.md) and [`constitutive/README.md`](constitutive/README.md).

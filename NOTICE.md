@@ -49,17 +49,6 @@ as well as the implementation.
 
 ---
 
-## constitutive/bolton-usdfld/ — MIT
-
-Original work, covered by the repository-root licence. A `USDFLD` subroutine that
-makes the built-in Abaqus Mohr-Coulomb model stress-dependent using Bolton's
-relative dilatancy index.
-
-Reference: Bolton, M.D. (1986). The strength and dilatancy of sands.
-*Géotechnique* 36(1), 65–78.
-
----
-
 ## constitutive/mohr-coulomb-clausen/ — PERMISSION GRANTED; CITATION REQUIRED
 
 Non-associated Mohr-Coulomb and Tresca UMATs with exact stress return, by
