@@ -212,7 +212,7 @@ plastic code paths are all exercised.
 | 1 | 3D, `ntens = 6`, 400 steps, reaches region 1 | max $|\Delta\sigma|$ = **0.0 Pa** |
 | 2 | Plane strain, `ntens = 4`, `nblock = 3`, reaches region 1 | max $|\Delta\sigma|$ = **0.0 Pa** |
 | 3 | $t=0$ probe returns constrained modulus $M$ | relative error **0.0** |
-| 4 | Single precision, `real*4` interface arrays | constants intact, yield residual $8\times10^{-3}$ Pa |
+| 4 | Single precision, `real*4` interface arrays, reaches region 2 | constants intact, yield residual $8\times10^{-3}$ Pa |
 
 Test 3 confirms the probe branch returns $M = E(1-\nu)/[(1+\nu)(1-2\nu)]$ exactly,
 which is what Abaqus needs for the wave speed --- $183.45$ m/s for
@@ -284,10 +284,11 @@ many increments.
 The first two items describe verification/build coverage; the remainder are
 properties of the model in an explicit setting rather than adapter defects.
 
-- **Standalone coverage is not full constitutive validation.** The current
-  paths reach elastic response and return region 1. Dedicated paths for the two
-  meridians and the apex (regions 2--4), plus an Abaqus single-element run, are
-  still required.
+- **Standalone coverage is not full constitutive validation.** The
+  double-precision UMAT/VUMAT equivalence paths reach elastic response and
+  return region 1. The single-precision smoke test reaches region 2 but checks
+  its yield residual rather than UMAT/VUMAT equivalence. Dedicated equivalence
+  paths for regions 2--4, plus an Abaqus single-element run, are still required.
 - **Extended fixed-form source is required.** The inherited `.for` source has
   significant text beyond column 72. The standalone build uses
   `-ffixed-line-length-none`; confirm the target Abaqus compiler configuration
