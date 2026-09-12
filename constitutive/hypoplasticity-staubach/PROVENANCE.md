@@ -8,9 +8,10 @@ subdirectory.
 
 This is a copyleft licence. If you distribute a modified version of these files,
 or a work that includes them, you must distribute it under GPL-3.0 as well. That
-does not restrict what you may do privately, and it does not affect the MIT
-licence on the rest of this repository, which does not link against these files —
-Abaqus does the linking at job submission, from paths supplied at run time.
+does not restrict private use. The source trees are distributed as separate
+works, so the repository's original Python and documentation retain their MIT
+licence. This statement does not determine the licensing of binaries produced
+when Abaqus compiles and links the GPL-covered Fortran.
 
 ## Origin
 

@@ -132,9 +132,24 @@ log alone tells you what was run.
 
 `FLD_SUBMIT=0` is the one to start with on an unfamiliar machine.
 
+## Tests available without Abaqus
+
+The parameter, deck-editing, ALE-selection, and post-processing helpers have a
+small pure-Python regression suite:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+GitHub Actions runs this suite on every push and pull request. It does not
+replace the Abaqus verification briefs: the CAE API calls and solver behavior
+still require the target Abaqus installation.
+
 ## Licence
 
-**MIT** for everything in `docs/`, `examples/`, `lib/`, `tools/` and `briefs/`.
+**MIT** for the repository-authored files in `docs/`, `examples/`, `lib/`,
+`tools/`, `briefs/`, `tests/`, and `.github/`, plus the root project files.
 
 **Not MIT** for `constitutive/`. Each subdirectory there carries its own licence
 and provenance:
@@ -143,7 +158,7 @@ and provenance:
 |---|---|
 | `constitutive/hypoplasticity-staubach/` | **GPL-3.0** (© Patrick Staubach; tensor tools © A. Niemunis) |
 | `constitutive/bolton-usdfld/` | MIT |
-| `constitutive/mohr-coulomb-clausen/` | **not included** — © Johan Clausen, permission pending |
+| `constitutive/mohr-coulomb-clausen/` | Original sources: custom permission and mandatory three-paper citation — © Johan Clausen; repository-authored adapter/tests: MIT |
 
 See [`NOTICE.md`](NOTICE.md) and [`constitutive/README.md`](constitutive/README.md).
 

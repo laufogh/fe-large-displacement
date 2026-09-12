@@ -17,7 +17,6 @@ Environment variables the loop understands:
                    a user subroutine)
     FLD_CASES      comma-separated subset, e.g. 'A,C'
     FLD_SUBMIT     0 to build and verify the decks without solving
-    FLD_POST_ONLY  1 to skip building and solving, and post-process existing ODBs
     FLD_NCPU       CPUs per job
     FLD_NDOMAINS   parallel domains (default: same as FLD_NCPU)
 """
@@ -68,7 +67,6 @@ def run_study(study, cases, case_fn, workdir, printer=print):
     report.banner('STUDY %s  --  cases %s' % (study, ', '.join(ids)), level=0)
     printer('  work dir : %s' % workdir)
     printer('  submit   : %s' % flag('SUBMIT', True))
-    printer('  post only: %s' % flag('POST_ONLY', False))
 
     for case_id in ids:
         report.banner('CASE %s' % case_id, level=1)

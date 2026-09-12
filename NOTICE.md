@@ -30,10 +30,12 @@ coupled VUMAT which is **not** vendored here.
 work that includes them, that distribution must also be GPL-3.0. Using them
 privately is unrestricted.
 
-The GPL-3.0 here does not affect the MIT licence on the rest of this repository.
-Nothing in `lib/` or `examples/` links against this Fortran: Abaqus performs the
-compilation and linking at job submission, from a path supplied at run time. The
-Python merely names a file.
+The source trees are distributed together as separate works, so the root MIT
+licence continues to govern the repository's original Python and documentation.
+The Python merely supplies a source path to Abaqus. This notice does not make a
+legal determination about redistribution of binaries produced when Abaqus
+compiles and links the GPL-covered Fortran; review the GPL and the applicable
+Abaqus terms before distributing such binaries.
 
 Files modified here: `VUMAT_dry_Staubach.f`, `sdvini.f`, `call_implicit.f` and
 `call_explicit.f` had GPL-3.0 notices **added** (they are derivative works or are
@@ -58,18 +60,24 @@ Reference: Bolton, M.D. (1986). The strength and dilatancy of sands.
 
 ---
 
-## constitutive/mohr-coulomb-clausen/ — NOT INCLUDED
+## constitutive/mohr-coulomb-clausen/ — PERMISSION GRANTED; CITATION REQUIRED
 
 Non-associated Mohr-Coulomb and Tresca UMATs with exact stress return, by
 **Johan Clausen** (Aalborg University).
 
-**The source files are not in this repository.** They carry no licence header of
-any kind, which under copyright means all rights reserved, and they cannot be
-redistributed publicly without written permission.
+The source files are included with permission. Copyright in the original UMATs
+remains with Johan Clausen, and the repository-root MIT licence does not apply
+to those original files. The repository-authored adapter, verification drivers,
+and documentation are MIT-licensed, subject to the original-source conditions
+whenever the model is used or the source bundle is redistributed.
 
-The directory contains a `PROVENANCE.md` explaining what is missing and why, and
-a `PERMISSION-REQUEST.md` with a draft request. Complete those steps before
-adding the files.
+Use and redistribution require retaining the directory permission notice and
+crediting Johan Clausen. Publications, technical reports, presentations, and
+other distributed analyses that use the model must cite all three implementation
+papers recorded in that directory's `LICENSE` and `PROVENANCE.md`.
+
+The VUMAT adapter has standalone gfortran equivalence tests. It has not yet been
+compiled and run through Abaqus on the target release; see `PORT-REPORT.md`.
 
 ---
 

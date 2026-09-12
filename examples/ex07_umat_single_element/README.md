@@ -17,7 +17,21 @@ Add `set FLD_SUBMIT=0` to build and verify the decks without solving.
 | `triax` | drained triaxial compression at constant cell pressure |
 | `cyc` | strain cycles - unload-reload and small-strain stiffness |
 
-Run a subset with `set FLD_CASES=A,C`.
+Run a subset with, for example, `set FLD_CASES=triax_implicit,triax_explicit`.
+
+For the included Clausen Mohr-Coulomb implementation, use the original UMAT
+for Standard and the adapter bundle for Explicit:
+
+```bat
+set FLD_UMAT_IMPLICIT=<repo>\constitutive\mohr-coulomb-clausen\MohrCoulombAbaqus.for
+set FLD_UMAT_EXPLICIT=<repo>\constitutive\mohr-coulomb-clausen\call_mc.f
+set FLD_UMAT_CONSTANTS=<repo>\constitutive\mohr-coulomb-clausen\constants.txt
+set FLD_UMAT_NSDV=1
+set FLD_SDV_INIT=0
+```
+
+`FLD_SDV_INIT=0` is intentional: `SDV1` is a return-region diagnostic and this
+source bundle does not contain an `SDVINI` routine.
 
 ## What to expect
 

@@ -35,8 +35,7 @@ the caisson and stops.
 The two phases
 --------------
 **Phase 1, jacked.** The caisson is pushed down at a constant rate to
-`jack_depth`. This is how a caisson is installed under self-weight and how it is
-installed in most laboratory tests. Straightforward displacement control.
+`jack_depth`, as in a displacement-controlled laboratory installation.
 
 **Phase 2, suction.** Water is pumped out of the caisson, so the pressure inside
 drops by `delta_p` relative to ambient. That does two things in reality:
@@ -280,6 +279,8 @@ def build(P, model_name, case):
     cai_inst = asm.Instance(name='CaissonInst', part=caisson, dependent=ON)
     asm.translate(instanceList=('SoilInst',), vector=(0.0, 0.0, -Ds))
     asm.translate(instanceList=('CaissonInst',), vector=(0.0, 0.0, 1.0e-6))
+    if not eulerian:
+        asm.Set(name='SoilAll', elements=soil_inst.elements)
 
     # -- rigid caisson -----------------------------------------------------
     rp = asm.ReferencePoint(point=(0.0, 0.0, P.t_lid / 2.0))
@@ -311,6 +312,7 @@ def build(P, model_name, case):
     if case != 'J':
         t_suction = (P.final_depth - P.jack_depth) / float(P.ind_vel)
         steps.explicit_step(model, 'Suction', 'Jack', t_suction, nlgeom=True)
+        steps.smooth_ramp(model, 'SuctionRamp', P.ramp_frac, t_suction)
 
     for step_name in (['Jack'] + (['Suction'] if case != 'J' else [])):
         model.HistoryOutputRequest(
@@ -369,7 +371,7 @@ def _apply_suction(model, asm, cai_inst, P, delta_p):
         F = delta_p * (pi * R^2) / 4
 
     The caisson is released from velocity control in this step and allowed to
-    penetrate under the applied force plus its own weight. That is what makes
+    penetrate under the applied force. That is what makes
     this phase physically different from jacking: the penetration rate is an
     *outcome*, not an input, and it is the quantity a designer actually wants.
 
@@ -385,7 +387,7 @@ def _apply_suction(model, asm, cai_inst, P, delta_p):
     model.boundaryConditions['Jacking'].deactivate('Suction')
     model.ConcentratedForce(name='SuctionForce', createStepName='Suction',
                             region=asm.sets['CaissonRP'], cf3=-force,
-                            amplitude='Ramp', distributionType=UNIFORM)
+                            amplitude='SuctionRamp', distributionType=UNIFORM)
     print('  suction %.1f kPa -> %.2f N on the quarter model '
           '(plan area %.5f m2)' % (delta_p / 1e3, force, area_quarter))
     return force
@@ -407,28 +409,27 @@ def _add_ale(model, asm, soil_inst, P, n_soil, step_names):
     R, L, t = P.r_caisson, P.l_skirt, P.t_wall
     depth = P.final_depth
     gap = 2.0 * P.seed_fine
+    z_min = -(depth + 6.0 * P.seed_fine)
 
-    # Region 1: an annulus box around the skirt, from the surface to below the
-    # deepest tip position. Expressed as a bounding box in x-y-z, which for a
-    # quarter model covers the annulus adequately.
-    tip_box = dict(xmin=0.0, xmax=R + 4.0 * t,
-                   ymin=0.0, ymax=R + 4.0 * t,
-                   zmin=-(depth + 6.0 * P.seed_fine), zmax=0.0)
+    # Region 1 is a true cylindrical annulus around the skirt. The previous
+    # rectangular selector contained the entire plug selector, so the overlap
+    # guard below correctly rejected every default ALE build.
+    tip_r_min = R - t - gap
+    tip_r_max = R + 4.0 * t
+    plug_r_max = tip_r_min - gap
+    if plug_r_max <= 0.0:
+        raise ValueError('ALE gap is too large for the caisson radius')
 
-    # Region 2: the soil plug inside the skirt, kept clear of region 1 by `gap`.
-    plug_box = dict(xmin=0.0, xmax=R - t - gap,
-                    ymin=0.0, ymax=R - t - gap,
-                    zmin=-(depth + 6.0 * P.seed_fine), zmax=0.0)
-
-    n_tip, bbox_tip = ale.box_element_set(asm, soil_inst, 'ALE_Tip', tip_box)
+    n_tip, bbox_tip = ale.cylindrical_element_set(
+        asm, soil_inst, 'ALE_Tip', tip_r_min, tip_r_max, z_min, 0.0)
     ale.describe_box_set('ALE_Tip', n_tip, bbox_tip, total=n_soil)
-    n_plug, bbox_plug = ale.box_element_set(asm, soil_inst, 'ALE_Plug',
-                                            plug_box)
+    n_plug, bbox_plug = ale.cylindrical_element_set(
+        asm, soil_inst, 'ALE_Plug', 0.0, plug_r_max, z_min, 0.0)
     ale.describe_box_set('ALE_Plug', n_plug, bbox_plug, total=n_soil)
 
-    # ALE_Tip as written contains the plug too (it is a bounding box, not an
-    # annulus). Overlapping domains are a real error: an element in two domains
-    # is smoothed twice per adaptive increment with no warning. So check.
+    # Overlapping domains are a real error: an element in two domains is
+    # smoothed twice per adaptive increment with no warning. Keep the explicit
+    # check as a regression guard even though the radial selectors are disjoint.
     tip_labels = set(e.label for e in asm.sets['ALE_Tip'].elements)
     plug_labels = set(e.label for e in asm.sets['ALE_Plug'].elements)
     overlap = tip_labels & plug_labels
@@ -521,8 +522,9 @@ def _soil_bcs(model, asm, inst, Rs, Ds, H):
                              region=regionToolset.Region(faces=arr),
                              u1=0.0, u2=0.0, distributionType=UNIFORM)
     else:
-        print('  *** WARNING: the outer curved face was not found, so the soil '
-              'domain is laterally unrestrained. Check the geometry. ***')
+        raise RuntimeError(
+            'the outer curved face was not found, so the soil domain would be '
+            'laterally unrestrained. Check the geometry and face selector.')
 
     base = inst.faces.getByBoundingBox(zMin=-Ds - 1e-6, zMax=-Ds + 1e-6)
     if len(base) == 0:
@@ -537,6 +539,9 @@ def _soil_bcs(model, asm, inst, Rs, Ds, H):
 
 def run_case(case, workdir, P):
     print('  %s: %s  [method=%s]' % (case, CASE_DOC[case], P.method))
+
+    if P.soil_model == 'umat' and not P.umat_source:
+        raise ValueError('soil_model=umat needs FLD_UMAT_SOURCE')
 
     model_name = 'Ex08_' + case
     job_name = 'ex08_%s_%s' % (P.method, case)
@@ -567,7 +572,8 @@ def run_case(case, workdir, P):
     if P.soil_model == 'umat':
         if P.sdv_init.strip():
             values = [float(v) for v in P.sdv_init.replace(' ', '').split(',')]
-            materials.write_sdv_initial_conditions(inp, 'SoilFilled', values,
+            initial_set = 'SoilFilled' if P.method == 'cel' else 'SoilAll'
+            materials.write_sdv_initial_conditions(inp, initial_set, values,
                                                    P.umat_nsdv)
         else:
             materials.sdv_initial_conditions_user(inp)
@@ -643,9 +649,9 @@ def main():
   model over-predicts the required suction, and it cannot reproduce plug heave
   or piping failure at all.
 
-  Modelling it properly needs a coupled pore-fluid formulation. See
-  `constitutive/` for a hydro-mechanically coupled VUMAT, and
-  `docs/07-suction-caisson.md` for what would have to change.
+  Modelling it properly needs a coupled pore-fluid formulation. The Staubach
+  upstream repository has a hydro-mechanically coupled VUMAT; it is not
+  vendored here. See `docs/07-suction-caisson.md` for what would have to change.
 """)
 
         rows = runner.run_study(

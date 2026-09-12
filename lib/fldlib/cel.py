@@ -118,7 +118,7 @@ def check_void_fraction(assembly, instance, filled_set_name, printer=print,
     if share < min_void:
         printer('  *** WARNING: only %.1f %% of the Eulerian domain is empty. '
                 'Heave has nowhere to go and penetration resistance will be '
-                'under-predicted. Increase the void thickness above the soil '
+                'over-predicted. Increase the void thickness above the soil '
                 'surface. ***' % (100.0 * share))
     return share
 

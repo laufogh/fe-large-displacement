@@ -122,6 +122,11 @@ def build_cube(P, model_name, path, solver):
 
     # -- material ----------------------------------------------------------
     source = P.umat_implicit if solver == 'implicit' else P.umat_explicit
+    if bool(source) != bool(P.umat_constants):
+        raise ValueError(
+            '%s user-material run needs both its FLD_UMAT_%s source and '
+            'FLD_UMAT_CONSTANTS; configure both or neither'
+            % (solver, solver.upper()))
     using_umat = bool(source and P.umat_constants)
     if using_umat:
         constants = materials.read_constants(P.umat_constants)
@@ -181,14 +186,50 @@ def build_cube(P, model_name, path, solver):
             raise RuntimeError('findAt missed the %s loaded face' % label)
 
     # -- step and loading path --------------------------------------------
+    # Triaxial loading needs a separate confinement step. Applying the cell
+    # pressure in the axial loading step made it ramp in Standard but jump in
+    # Explicit, so the supposedly matched solvers followed different paths and
+    # neither started axial shearing at constant cell pressure.
+    previous = 'Initial'
+    if path == 'triax':
+        if solver == 'implicit':
+            model.StaticStep(name='Confinement', previous='Initial', nlgeom=ON,
+                             timePeriod=1.0, initialInc=0.01, minInc=1e-9,
+                             maxInc=0.05, maxNumInc=1000)
+            confinement_period = 1.0
+        else:
+            confinement_period = P.explicit_time
+            steps.explicit_step(model, 'Confinement', 'Initial',
+                                confinement_period, nlgeom=True)
+        model.SmoothStepAmplitude(
+            name='CellRamp', timeSpan=STEP,
+            data=((0.0, 0.0), (confinement_period, 1.0)))
+        model.Pressure(
+            name='CellX', createStepName='Confinement',
+            region=asm.Surface(side1Faces=side_x, name='SurfX'),
+            magnitude=P.cell_pressure, amplitude='CellRamp',
+            distributionType=UNIFORM)
+        model.Pressure(
+            name='CellY', createStepName='Confinement',
+            region=asm.Surface(side1Faces=side_y, name='SurfY'),
+            magnitude=P.cell_pressure, amplitude='CellRamp',
+            distributionType=UNIFORM)
+        model.Pressure(
+            name='CellZ', createStepName='Confinement',
+            region=asm.Surface(side1Faces=top, name='SurfZ'),
+            magnitude=P.cell_pressure, amplitude='CellRamp',
+            distributionType=UNIFORM)
+        steps.energy_output(model, 'Confinement', interval=100)
+        previous = 'Confinement'
+
     step_name = 'Load'
     if solver == 'implicit':
-        model.StaticStep(name=step_name, previous='Initial', nlgeom=ON,
+        model.StaticStep(name=step_name, previous=previous, nlgeom=ON,
                          timePeriod=1.0, initialInc=0.005, minInc=1e-9,
                          maxInc=0.02, maxNumInc=10000)
         period = 1.0
     else:
-        steps.explicit_step(model, step_name, 'Initial', P.explicit_time,
+        steps.explicit_step(model, step_name, previous, P.explicit_time,
                             nlgeom=True)
         period = P.explicit_time
     steps.energy_output(model, step_name, interval=200)
@@ -248,15 +289,9 @@ def _loading(model, path, step_name, P, s, top, side_x, side_y):
             region=regionToolset.Region(faces=side_y), u2=0.0,
             distributionType=UNIFORM)
     else:
-        # Constant cell pressure on the free faces -> drained triaxial.
-        model.Pressure(name='CellX', createStepName=step_name,
-                       region=model.rootAssembly.Surface(
-                           side1Faces=side_x, name='SurfX'),
-                       magnitude=P.cell_pressure, distributionType=UNIFORM)
-        model.Pressure(name='CellY', createStepName=step_name,
-                       region=model.rootAssembly.Surface(
-                           side1Faces=side_y, name='SurfY'),
-                       magnitude=P.cell_pressure, distributionType=UNIFORM)
+        # Cell pressure was established in the Confinement step and propagates
+        # at its full value through this axial loading step.
+        pass
 
 
 def check_finite(odb_path, printer=print):
@@ -272,21 +307,17 @@ def check_finite(odb_path, printer=print):
     bad = []
     try:
         for step in odb.steps.values():
-            if not step.frames:
-                continue
-            frame = step.frames[-1]
-            for fname in ('S', 'LE', 'U', 'SDV1'):
-                if fname not in frame.fieldOutputs:
-                    continue
-                for value in frame.fieldOutputs[fname].values:
-                    data = value.data
-                    items = data if hasattr(data, '__len__') else [data]
-                    for v in items:
-                        if v != v or v in (float('inf'), float('-inf')):
-                            bad.append('%s in %s' % (fname, step.name))
-                            break
-                    if bad:
-                        break
+            for frame in step.frames:
+                for fname in ('S', 'LE', 'U', 'SDV1'):
+                    if fname not in frame.fieldOutputs:
+                        continue
+                    for value in frame.fieldOutputs[fname].values:
+                        data = value.data
+                        items = data if hasattr(data, '__len__') else [data]
+                        for v in items:
+                            if v != v or v in (float('inf'), float('-inf')):
+                                bad.append('%s in %s' % (fname, step.name))
+                                break
     finally:
         odb.close()
     if bad:

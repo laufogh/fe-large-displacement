@@ -41,7 +41,7 @@ _PREFIX = 'FLD_'
 # Environment variables that belong to the harness rather than to any one
 # study, and so must not be reported as typos by resolve().
 _HARNESS_VARS = ('REPO', 'WORKDIR', 'CASES', 'NCPU', 'NDOMAINS', 'SUBMIT',
-                 'POST_ONLY', 'ABAQUS', 'SUBROUTINE', 'DOUBLE')
+                 'ABAQUS', 'SUBROUTINE', 'DOUBLE')
 
 
 class ParamError(ValueError):

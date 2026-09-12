@@ -1,39 +1,51 @@
 # Provenance — Mohr-Coulomb and Tresca (Clausen)
 
-## STATUS: NOT YET INCLUDED — permission required
+## Status and permission record
 
-**This directory is intentionally empty of source code.**
+The source and port are included with permission. Copyright in the original
+Mohr-Coulomb and Tresca implementations remains with Johan Clausen; inclusion
+here does not place them under the repository-root MIT licence.
 
-The subroutines intended for it are:
+| | |
+|---|---|
+| Permission | Public redistribution and use, with mandatory citation of the three implementation papers listed below |
+| Confirmed | 12 September 2026, by the repository maintainer, who retains the underlying permission record |
+| Terms | [`LICENSE`](LICENSE) in this directory |
+| Attribution | Johan Clausen, Aalborg University at the time of the work |
+
+Included files:
 
 | File | What it is |
 |---|---|
 | `MohrCoulombAbaqus.for` | UMAT for Abaqus/Standard. Linear elastic – perfectly plastic, **non-associated** Mohr-Coulomb with exact stress return and explicit handling of the edges and the apex of the yield surface. |
 | `TrescaAbaqus.for` | The same treatment for Tresca. |
-| `VUMAT_MohrCoulomb.f` | VUMAT port for Abaqus/Explicit. |
+| `VUMAT_MohrCoulomb.f` | VUMAT adapter for Abaqus/Explicit. |
 | `call_mc.f` | Top-level include file. |
+| `verification/` | Standalone gfortran equivalence checks. |
+| `PORT-REPORT.md` | Port design, verification results and limitations. |
 
-**Author: Johan Clausen (Aalborg University).** The source files carry **no
-licence header of any kind**, which under copyright means all rights reserved.
-They cannot be redistributed in a public repository without his written
-permission, whatever their scientific provenance and however freely they have
-been shared privately.
+The permission does not transfer copyright or make the original sources MIT.
+Read the directory licence before redistributing or using the model.
 
-## To complete this directory
+## Required citations
 
-1. Obtain written permission from Johan Clausen to redistribute the files under
-   a named licence. A draft request is in `PERMISSION-REQUEST.md`.
-2. Copy the four files into this directory.
-3. Add a `LICENSE` file with the agreed licence text, and record the licence,
-   the date and the form of the permission in this file.
-4. Delete this STATUS section.
+Use of the model in a publication, technical report, presentation, or other
+distributed analysis must cite all three papers:
 
-Until step 1 is done, leave this directory as it is. An open-source repository
-that redistributes someone's unlicensed code is a problem for the author, for
-the institution and for anyone who then uses it downstream believing it was
-cleared.
+1. Clausen, J., Damkilde, L. and Andersen, L. (2006). “Efficient return
+   algorithms for associated plasticity with multiple yield planes.”
+   *International Journal for Numerical Methods in Engineering*, 66(6),
+   1036–1059. <https://doi.org/10.1002/nme.1595>
+2. Clausen, J., Damkilde, L. and Andersen, L. (2007). “An efficient return
+   algorithm for non-associated plasticity with linear yield criteria in
+   principal stress space.” *Computers & Structures*, 85(23–24), 1795–1807.
+   <https://doi.org/10.1016/j.compstruc.2007.04.002>
+3. Clausen, J., Damkilde, L. and Andersen, L. (2015). “Robust and efficient
+   handling of yield surface discontinuities in elasto-plastic finite element
+   calculations.” *Engineering Computations*, 32(6), 1722–1752.
+   <https://doi.org/10.1108/EC-01-2014-0008>
 
-## Why it is worth the email
+## Why the model is included
 
 Abaqus has a built-in Mohr-Coulomb model, so this is not about availability.
 It is about the return algorithm. The Abaqus implementation rounds the corners of
@@ -47,10 +59,9 @@ It also handles the apex properly, which is where a cohesionless sand ends up
 under the tensile conditions that occur behind a penetrating object — the exact
 situation Abaqus' own implementation struggles with.
 
-## What to do in the meantime
+## Verification status
 
-The examples fall back to the Abaqus built-in Mohr-Coulomb
-(`fldlib.materials.mohr_coulomb_soil`), which is entirely adequate for learning
-the ALE and CEL mechanics this repository is about. For sand specifically, the
-`bolton-usdfld` model in the neighbouring directory is a cheap and useful
-improvement on constant φ and ψ, and it is unencumbered.
+The standalone checks in `verification/` reproduce the UMAT stress update
+through the VUMAT adapter in double and single precision. They do not replace an
+Abaqus compile/data-check and single-element run on the target Abaqus release.
+See `PORT-REPORT.md` for the exact coverage and remaining limitations.

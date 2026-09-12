@@ -9,10 +9,9 @@ Design rules (please keep them if you extend this):
    pass in the model / assembly / step you mean.
 3. **Nothing is silently skipped.** If a helper cannot do what it was asked, it
    raises. Geotechnical models fail quietly and expensively; this library does not.
-4. **Python 2.7 compatible**, because Abaqus/CAE's interpreter is Python 2.7 in
-   every version up to 2024. `from __future__ import print_function` at the top
-   of each module keeps the same source valid under Python 3 for the
-   post-processing modules that run outside CAE.
+4. **Python 2.7 and 3 compatible.** Abaqus releases through 2023 use Python 2.7;
+   Abaqus 2024 and later use Python 3.10+. `from __future__ import
+   print_function` keeps the shared source valid across that transition.
 
 Import from a script that Abaqus runs::
 

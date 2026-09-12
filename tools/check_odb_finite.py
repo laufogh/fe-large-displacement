@@ -62,30 +62,30 @@ def main(argv):
             step = odb.steps[step_name]
             if not len(step.frames):
                 continue
-            frame = step.frames[-1]
             for inst_name in instances:
                 region = odb.rootAssembly.instances[inst_name]
                 for key in FIELDS:
-                    if key not in frame.fieldOutputs.keys():
-                        continue
-                    try:
-                        vals = frame.fieldOutputs[key].getSubset(
-                            region=region).values
-                    except Exception:
-                        continue
                     nbad = 0
                     ntot = 0
-                    for v in vals:
-                        d = v.data
+                    for frame in step.frames:
+                        if key not in frame.fieldOutputs.keys():
+                            continue
                         try:
-                            comps = list(d)
-                        except TypeError:
-                            comps = [d]
-                        ntot += 1
-                        for c in comps:
-                            if bad(c):
-                                nbad += 1
-                                break
+                            vals = frame.fieldOutputs[key].getSubset(
+                                region=region).values
+                        except Exception:
+                            continue
+                        for v in vals:
+                            d = v.data
+                            try:
+                                comps = list(d)
+                            except TypeError:
+                                comps = [d]
+                            ntot += 1
+                            for c in comps:
+                                if bad(c):
+                                    nbad += 1
+                                    break
                     if ntot == 0:
                         continue
                     flag = 'NON-FINITE' if nbad else 'ok'

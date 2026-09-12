@@ -70,12 +70,11 @@ at a fixed depth.
 ### c. Hydro-mechanically coupled VUMAT in Abaqus/Explicit
 
 Carry the pore pressure as a state variable inside the constitutive subroutine
-and solve the fluid mass balance alongside the momentum equation. This is what
-`constitutive/hypoplasticity-staubach/` implements, and it is the route used in
-the published vibratory pile driving and cyclic pile work that model came from.
-It is the correct answer and it is a substantial undertaking: you inherit the
-subroutine's stability characteristics, its time-step requirements and its
-calibration.
+and solve the fluid mass balance alongside the momentum equation. The upstream
+Staubach repository contains such a VUMAT, used in published vibratory pile
+driving and cyclic pile work; only its dry/uncoupled derivative is vendored
+here. This route is a substantial undertaking: you inherit the subroutine's
+stability characteristics, time-step requirements and calibration.
 
 If the visiting scholar's project needs installation resistance in sand, route
 (a) is where to start. If it needs plug stability or maximum allowable suction,
@@ -111,6 +110,12 @@ adaptive domains is smoothed twice per increment and Abaqus does not warn.
 **Rate.** The default penetration rate is scaled far above reality. Check
 `ALLKE/ALLIE` before believing any resistance from it, and see
 [01-explicit-quasi-static.md](01-explicit-quasi-static.md).
+
+**Initial stress.** The teaching model does not yet establish a gravity-derived
+geostatic stress field. Its resistance curves are therefore useful for comparing
+formulations and load paths, not as design predictions. A quantitative model
+must initialise effective stress consistently with unit weight and groundwater
+before installation.
 
 ## ALE or CEL for a caisson?
 

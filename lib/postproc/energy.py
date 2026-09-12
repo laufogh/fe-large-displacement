@@ -97,22 +97,43 @@ def ratios(energies):
                          'output (steps.energy_output) and rerun. Without it '
                          'there is no way to judge whether the run was '
                          'quasi-static.')
-    ref = max(abs(v) for v in allie) or 1.0
+    allie_max = max(abs(v) for v in allie)
+    eps = 1.0e-30
 
     def ratio_series(name):
         series = energies.get(name) or []
-        return [abs(v) / ref for v in series]
+        if series and len(series) != len(allie):
+            raise ValueError(
+                '%s and ALLIE histories have different lengths (%d and %d); '
+                'they cannot be compared point by point'
+                % (name, len(series), len(allie)))
+        out = []
+        for value, internal in zip(series, allie):
+            denominator = abs(internal)
+            if denominator > eps:
+                out.append(abs(value) / denominator)
+            elif abs(value) <= eps:
+                out.append(0.0)
+            else:
+                # A nonzero diagnostic energy while ALLIE is effectively zero
+                # is dynamically significant, not a value to hide by dividing
+                # by the much larger ALLIE reached later in the analysis.
+                out.append(float('inf'))
+        return out
 
     out = {}
     for name in ('ALLKE', 'ALLAE', 'ALLDC', 'ALLVD', 'ETOTAL'):
         r = ratio_series(name)
+        peak_index = r.index(max(r)) if r else None
         out[name + '/ALLIE'] = {
             'peak': max(r) if r else 0.0,
             'final': r[-1] if r else 0.0,
-            'peak_at': (energies['time'][r.index(max(r))]
-                        if r and energies.get('time') else None),
+            'peak_at': (energies['time'][peak_index]
+                        if peak_index is not None
+                        and peak_index < len(energies.get('time') or [])
+                        else None),
         }
-    out['ALLIE_max'] = ref
+    out['ALLIE_max'] = allie_max
     return out
 
 

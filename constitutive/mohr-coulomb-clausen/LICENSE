@@ -1,0 +1,48 @@
+Clausen Mohr-Coulomb and Tresca source licence
+
+Copyright (c) Johan Clausen
+
+The original Mohr-Coulomb and Tresca implementations in
+MohrCoulombAbaqus.for and TrescaAbaqus.for are redistributed with permission.
+Permission is granted to recipients of this repository to use and redistribute
+those files, in source or compiled form, provided that:
+
+1. this copyright and permission notice is retained with redistributed copies;
+2. Johan Clausen is credited as the author of the original implementation; and
+3. every publication, technical report, presentation, or other distributed
+   analysis that uses the model cites all three works below.
+
+Required citations
+------------------
+
+J. Clausen, L. Damkilde and L. Andersen (2006), "Efficient return algorithms
+for associated plasticity with multiple yield planes," International Journal
+for Numerical Methods in Engineering 66(6), 1036-1059.
+https://doi.org/10.1002/nme.1595
+
+J. Clausen, L. Damkilde and L. Andersen (2007), "An efficient return algorithm
+for non-associated plasticity with linear yield criteria in principal stress
+space," Computers & Structures 85(23-24), 1795-1807.
+https://doi.org/10.1016/j.compstruc.2007.04.002
+
+J. Clausen, L. Damkilde and L. Andersen (2015), "Robust and efficient handling
+of yield surface discontinuities in elasto-plastic finite element
+calculations," Engineering Computations 32(6), 1722-1752.
+https://doi.org/10.1108/EC-01-2014-0008
+
+Copyright in the original implementation is not transferred by this licence.
+The repository-root MIT licence does not replace or override these terms.
+
+The repository-authored VUMAT adapter, build glue, verification drivers and
+documentation in this directory are available under the repository-root MIT
+licence. When they are used or redistributed with the original Clausen source,
+the conditions above continue to apply to the combined source bundle and to
+use of the model.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

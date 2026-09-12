@@ -8,7 +8,7 @@
 |---|---|---|---|
 | [`hypoplasticity-staubach/`](hypoplasticity-staubach/) | Hypoplasticity with intergranular strain (Niemunis–Herle), UMAT + VUMAT | **GPL-3.0** | included |
 | [`bolton-usdfld/`](bolton-usdfld/) | Stress-dependent φ and ψ for the built-in Mohr-Coulomb, via USDFLD | MIT | included |
-| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb and Tresca with exact stress return, UMAT + VUMAT | unlicensed upstream | **not included — permission pending** |
+| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb and Tresca with exact stress return, UMAT + VUMAT | originals: custom permission and three citations; adapter/tests: MIT | included; Abaqus verification pending |
 
 ## Which one do you need?
 

@@ -47,6 +47,7 @@ Hard-won facts, all verified on Abaqus 2021 (see docs/02-ale-adaptive-meshing.md
 
 from __future__ import print_function
 
+import math
 import re
 
 
@@ -111,6 +112,63 @@ def box_element_set(assembly, instance, name, box, required=True):
     n_set = len(assembly.sets[name].elements)
     if n_set != len(idxs):
         raise AssertionError('ALE box set size mismatch: CAE=%d filter=%d'
+                             % (n_set, len(idxs)))
+    bbox = ((min(xs), max(xs)), (min(ys), max(ys)), (min(zs), max(zs)))
+    return len(idxs), bbox
+
+
+def cylindrical_element_set(assembly, instance, name, r_min, r_max,
+                            z_min, z_max, required=True):
+    """Assembly element set selected by centroid radius and elevation.
+
+    This is the appropriate selector for axisymmetric geometry represented by
+    a 3-D sector. A rectangular bounding box cannot distinguish a soil plug
+    from the annulus around a circular skirt and can therefore create
+    overlapping adaptive-mesh domains.
+    """
+    if r_min < 0.0 or r_max <= r_min:
+        raise ValueError('need 0 <= r_min < r_max (got %g, %g)'
+                         % (r_min, r_max))
+    if z_max <= z_min:
+        raise ValueError('need z_min < z_max (got %g, %g)'
+                         % (z_min, z_max))
+
+    idxs, xs, ys, zs = [], [], [], []
+    for i, el in enumerate(instance.elements):
+        nodes = el.getNodes()
+        n = float(len(nodes))
+        cx = sum(nd.coordinates[0] for nd in nodes) / n
+        cy = sum(nd.coordinates[1] for nd in nodes) / n
+        cz = sum(nd.coordinates[2] for nd in nodes) / n
+        radius = math.sqrt(cx * cx + cy * cy)
+        if r_min <= radius <= r_max and z_min <= cz <= z_max:
+            idxs.append(i)
+            xs.append(cx)
+            ys.append(cy)
+            zs.append(cz)
+
+    if not idxs:
+        if not required:
+            return 0, None
+        raise RuntimeError(
+            'cylindrical element set %r is EMPTY -- radius %g..%g, '
+            'z %g..%g. Check the selector against the actual mesh.'
+            % (name, r_min, r_max, z_min, z_max))
+
+    arr = None
+    run_start = run_end = idxs[0]
+    for i in idxs[1:] + [-1]:
+        if i == run_end + 1:
+            run_end = i
+        else:
+            chunk = instance.elements[run_start:run_end + 1]
+            arr = chunk if arr is None else arr + chunk
+            run_start = run_end = i
+
+    assembly.Set(name=name, elements=arr)
+    n_set = len(assembly.sets[name].elements)
+    if n_set != len(idxs):
+        raise AssertionError('cylindrical set size mismatch: CAE=%d filter=%d'
                              % (n_set, len(idxs)))
     bbox = ((min(xs), max(xs)), (min(ys), max(ys)), (min(zs), max(zs)))
     return len(idxs), bbox

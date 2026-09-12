@@ -35,8 +35,8 @@ contents and their licences. In summary:
 
 | Model | Type | Where |
 |---|---|---|
-| Hypoplasticity with intergranular strain (Niemunis-Herle), incl. hydro-mechanical coupling | UMAT + VUMAT | `constitutive/hypoplasticity-staubach/` (GPL-3.0) |
-| Mohr-Coulomb with exact stress return and corner handling (Clausen) | UMAT + VUMAT | `constitutive/mohr-coulomb-clausen/` (see its PROVENANCE) |
+| Hypoplasticity with intergranular strain (Niemunis-Herle), dry/uncoupled implementation | UMAT + VUMAT | `constitutive/hypoplasticity-staubach/` (GPL-3.0) |
+| Mohr-Coulomb with exact stress return and corner handling (Clausen) | UMAT + VUMAT | `constitutive/mohr-coulomb-clausen/` (custom permission; three citations required) |
 | Bolton stress-dependent friction/dilation via field variables | USDFLD | `constitutive/bolton-usdfld/` |
 
 The Bolton USDFLD is worth a word: it is not a constitutive model at all, but a
