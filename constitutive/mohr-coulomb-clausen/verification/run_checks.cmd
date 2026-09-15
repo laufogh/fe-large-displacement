@@ -9,13 +9,13 @@ setlocal
 cd /d "%~dp0"
 
 echo === Building double precision ===
-gfortran -c -ffixed-form -ffixed-line-length-none -I. -I.. ..\call_mc.f -o call_mc.o || goto :fail
-gfortran -O2 -ffree-form .\driver.f90  call_mc.o -o driver.exe  || goto :fail
-gfortran -O2 -ffree-form .\driver2.f90 call_mc.o -o driver2.exe || goto :fail
+gfortran -c -ffixed-form -ffixed-line-length-none -I. -I.. ..\call_explicit.f -o call_explicit.o || goto :fail
+gfortran -O2 -ffree-form .\driver.f90  call_explicit.o -o driver.exe  || goto :fail
+gfortran -O2 -ffree-form .\driver2.f90 call_explicit.o -o driver2.exe || goto :fail
 
 echo === Building single precision ===
-gfortran -c -ffixed-form -ffixed-line-length-none -Isp -I.. ..\call_mc.f -o call_mc_sp.o || goto :fail
-gfortran -O2 -ffree-form .\driver_sp.f90 call_mc_sp.o -o driver_sp.exe || goto :fail
+gfortran -c -ffixed-form -ffixed-line-length-none -Isp -I.. ..\call_explicit.f -o call_explicit_sp.o || goto :fail
+gfortran -O2 -ffree-form .\driver_sp.f90 call_explicit_sp.o -o driver_sp.exe || goto :fail
 
 echo.
 echo === Test 1: 3D, all six components (double) ===
@@ -36,5 +36,5 @@ goto :cleanup
 set result=1
 
 :cleanup
-del /q call_mc.o call_mc_sp.o driver.exe driver2.exe driver_sp.exe >nul 2>&1
+del /q call_explicit.o call_explicit_sp.o driver.exe driver2.exe driver_sp.exe >nul 2>&1
 endlocal & exit /b %result%

@@ -40,9 +40,15 @@ The five constants are, in order:
 One state variable is required. `SDV1` records the return region: 0 elastic,
 1 surface, 2 compression meridian, 3 tension meridian, and 4 apex.
 
-Use `MohrCoulombAbaqus.for` as the user-subroutine source for Standard and
-`call_mc.f` for Explicit. The latter includes the original UMAT and the VUMAT
-adapter. A sample material property file is provided as `constants.txt`; it is
+Point `user=` at one of these files. Abaqus compiles only that file; everything
+else is pulled in by `include`.
+
+| File | What it is |
+|---|---|
+| `call_implicit.f` | Abaqus/Standard UMAT |
+| `call_explicit.f` | Abaqus/Explicit VUMAT. Includes the UMAT and the adapter. |
+
+A sample material property file is provided as `constants.txt`; it is
 illustrative, not a soil calibration. Set `FLD_UMAT_NSDV=1` and
 `FLD_SDV_INIT=0` when you use the model; the zero explicitly initialises the
 diagnostic SDV without requesting an `SDVINI` routine that is not in this

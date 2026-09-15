@@ -31,7 +31,7 @@ All in `constitutive/mohr-coulomb-clausen/`.
 | File | Lines | Purpose |
 |:--|--:|:--|
 | `VUMAT_MohrCoulomb.f` | 220 | The wrapper |
-| `call_mc.f` | 2 | Build glue: `include`s the UMAT and the wrapper |
+| `call_explicit.f` | 2 | Build glue: `include`s the UMAT and the wrapper |
 | `verification/` | -- | Standalone gfortran checks, no Abaqus needed |
 
 # Why a wrapper is enough
@@ -250,14 +250,14 @@ $E$, $\nu$, $c$, $\varphi$ [deg], $\psi$ [deg]. Neither $\varphi$ nor $\psi$ may
 zero. `SDV1` carries the return region: 0 elastic, 1 single surface, 2 compression
 meridian, 3 tension meridian, 4 apex.
 
-For Explicit, submit against **`call_mc`**, not against the VUMAT file, exactly as the
-hypoplasticity suite submits against `call_dry`:
+For Explicit, submit against **`call_explicit`**, not against the VUMAT file,
+exactly as the hypoplasticity suite submits against `call_explicit_dry`:
 
 ```
-abaqus job=myjob inp=myjob cpus=4 user=call_mc
+abaqus job=myjob inp=myjob cpus=4 user=call_explicit
 ```
 
-`call_mc.f` is two lines, and it is the whole reason the link works:
+`call_explicit.f` is two lines, and it is the whole reason the link works:
 
 ```fortran
       include'MohrCoulombAbaqus.for'
@@ -273,7 +273,7 @@ VUMAT_MohrCoulomb.obj : error LNK2019: unresolved external
 symbol umat referenced in function vumat
 ```
 
-Both source files and `call_mc.f` must sit in the job directory (or be reachable
+Both source files and `call_explicit.f` must sit in the job directory (or be reachable
 from it), since the `include`s are resolved relative to the file being compiled.
 `double=both` is optional --- the wrapper is correct in single precision too ---
 but is worth adding for a geotechnical job that accumulates small strains over

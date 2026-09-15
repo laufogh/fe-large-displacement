@@ -19,7 +19,8 @@ Included files:
 |---|---|
 | `MohrCoulombAbaqus.for` | UMAT for Abaqus/Standard. Linear elastic – perfectly plastic, **non-associated** Mohr-Coulomb with exact stress return and explicit handling of the edges and the apex of the yield surface. |
 | `VUMAT_MohrCoulomb.f` | VUMAT adapter for Abaqus/Explicit. |
-| `call_mc.f` | Top-level include file. |
+| `call_implicit.f` | Top-level file for a Standard job (`user=`). |
+| `call_explicit.f` | Top-level file for an Explicit job (`user=`). |
 | `verification/` | Standalone gfortran equivalence checks. |
 | `PORT-REPORT.md` | Port design, verification results and limitations. |
 
