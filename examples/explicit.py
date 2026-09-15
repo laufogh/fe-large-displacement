@@ -26,10 +26,10 @@ import step
 
 # --- numbers you may want to change ---------------------------------------
 
+SEED = 0.025             # same mesh on every formulation
 SOIL_LEN = 0.30
-SOIL_WID = 0.20
+SOIL_WID = SEED          # one element through the strip (plane strain)
 SOIL_DEP = 0.20
-SEED = 0.010
 
 IND_HALF = 0.0225
 IND_THICK = 0.010

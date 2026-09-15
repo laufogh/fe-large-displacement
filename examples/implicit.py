@@ -18,7 +18,7 @@ from abaqus import mdb
 from abaqusConstants import (
     THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, STANDARD,
     MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
-    PERCENTAGE, DEFAULT, DISSIPATED_ENERGY_FRACTION, HARD, PENALTY,
+    PERCENTAGE, DEFAULT, HARD, PENALTY,
     ISOTROPIC, FRACTION, GLOBAL, SELF)
 import interaction
 import mesh
@@ -28,10 +28,10 @@ import step
 
 # --- numbers you may want to change ---------------------------------------
 
+SEED = 0.025             # m, element size. Same on every formulation.
 SOIL_LEN = 0.30          # m, block size in x
-SOIL_WID = 0.20          # m, block size in y
+SOIL_WID = SEED          # one element through the strip (plane strain)
 SOIL_DEP = 0.20          # m, block size in z
-SEED = 0.010             # m, element size
 
 IND_HALF = 0.0225        # m, half-width of the strip
 IND_THICK = 0.010        # m, thickness of the strip
@@ -121,22 +121,19 @@ model.RigidBody(name='IndRigid', refPointRegion=rp_region,
                 bodyRegion=regionToolset.Region(cells=ind_inst.cells),
                 refPointAtCOM=ON)
 
-# *Static, geometrically nonlinear, automatic stabilisation (fictitious
-# viscous damping). Check ALLSD against ALLIE if the job runs far enough.
+# *Static, geometrically nonlinear. Automatic incrementation. No
+# stabilisation: that is fictitious viscous damping.
 model.StaticStep(
     name='Push', previous='Initial', nlgeom=ON, timePeriod=1.0,
-    initialInc=0.005, minInc=1.0e-8, maxInc=0.05, maxNumInc=1000,
-    stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
-    stabilizationMagnitude=2.0e-4, adaptiveDampingRatio=0.05,
-    continueDampingFactors=ON)
+    initialInc=0.01, minInc=1.0e-8, maxInc=0.5)
 model.TabularAmplitude(name='Ramp', timeSpan=STEP,
                        data=((0.0, 0.0), (1.0, 1.0)))
 model.HistoryOutputRequest(
     name='Energies', createStepName='Push',
-    variables=('ALLIE', 'ALLSD', 'ALLWK', 'ETOTAL'), numIntervals=200)
+    variables=('ALLIE', 'ALLWK', 'ETOTAL'))
 model.HistoryOutputRequest(
     name='RP', createStepName='Push', region=asm.sets['IndRP'],
-    variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
+    variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'))
 
 # Rollers on the four sides, encastre on the base.
 zc = -SOIL_DEP / 2.0
