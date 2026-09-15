@@ -30,11 +30,18 @@ abaqus cae noGUI=examples/implicit.py
 
 Each script is complete. Open two and diff them.
 
-User subroutines live in [`constitutive/`](constitutive/). Using the Clausen Mohr-Coulomb model requires citing three papers; see that folder.
-
 ![Strip indenter load–displacement](media/indenter-load-displacement.png)
 
 Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
+
+## User materials
+
+[`constitutive/`](constitutive/) has two models. Each is a Standard UMAT and an Explicit VUMAT, dry or saturated (pore pressure on the temperature DOF). Point `user=` at the call file in the folder. The example scripts do not use these.
+
+| | |
+|---|---|
+| [`constitutive/mohr-coulomb-clausen/`](constitutive/mohr-coulomb-clausen/) | Clausen Mohr-Coulomb, exact return. Citation required. |
+| [`constitutive/hypoplasticity-staubach/`](constitutive/hypoplasticity-staubach/) | Hypoplasticity with intergranular strain. GPL-3.0. |
 
 ## Licence
 
