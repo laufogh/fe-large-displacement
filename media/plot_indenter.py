@@ -37,7 +37,22 @@ def load_csv(path):
             if key not in row:
                 key = 'resistance_N_raw'
             force.append(float(row[key]) / 1000.0)
-    return depth, force
+    return cutoff_collapse(depth, force)
+
+
+def cutoff_collapse(depth, force):
+    """Drop the tail after the result snaps back toward zero."""
+    if len(depth) < 3:
+        return depth, force
+    dmax = 0.0
+    cut = 0
+    for i, d in enumerate(depth):
+        if dmax > 1.0 and d < 0.5 * dmax:
+            break
+        if d >= dmax:
+            dmax = d
+        cut = i + 1
+    return depth[:cut], force[:cut]
 
 
 def main():
