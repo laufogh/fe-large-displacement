@@ -139,13 +139,10 @@ python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-GitHub Actions runs this suite on every push and pull request. It does not
-replace a data-check on the target Abaqus installation.
-
 ## Licence
 
 **MIT** for the repository-authored files in `docs/`, `examples/`, `lib/`,
-`tools/`, `tests/`, `teaching/`, and `.github/`, plus the root project files.
+`tools/`, `tests/`, `teaching/`, plus the root project files.
 
 **Not MIT** for `constitutive/`. Each subdirectory there carries its own licence
 and provenance:
