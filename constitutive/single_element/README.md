@@ -19,6 +19,9 @@ Add `set FLD_SUBMIT=0` to build and verify the decks without solving.
 
 Run a subset with, for example, `set FLD_CASES=triax_implicit,triax_explicit`.
 
+Using the Clausen Mohr-Coulomb model requires citing Clausen et al. (2006, 2007,
+2015). See [`mohr-coulomb-clausen/README.md`](../mohr-coulomb-clausen/README.md).
+
 For the included Clausen Mohr-Coulomb implementation, use the original UMAT
 for Standard and the adapter bundle for Explicit:
 

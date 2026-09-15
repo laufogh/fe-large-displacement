@@ -22,7 +22,9 @@ Then, roughly in order of effort:
    with exact return to the edges and the apex of the yield surface. Matters for
    penetration problems, where many integration points near the tip sit exactly
    on an edge. No state variables and no initialisation, so it is the right first
-   step away from the built-in model.
+   step away from the built-in model. Cite Clausen et al. (2006, 2007, 2015);
+   the three papers and a `.bib` file are in
+   [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/).
 2. **Hypoplasticity with intergranular strain.** A genuinely state-dependent
    model: critical state, dilatancy evolution, small-strain stiffness and cyclic
    memory. This is what you need for anything involving installation history,

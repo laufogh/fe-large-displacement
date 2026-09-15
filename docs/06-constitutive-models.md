@@ -36,7 +36,15 @@ contents and their licences. In summary:
 | Model | Type | Where |
 |---|---|---|
 | Hypoplasticity with intergranular strain (Niemunis-Herle), dry/uncoupled implementation | UMAT + VUMAT | `constitutive/hypoplasticity-staubach/` (GPL-3.0) |
-| Mohr-Coulomb with exact stress return and corner handling (Clausen) | UMAT + VUMAT | `constitutive/mohr-coulomb-clausen/` (custom permission; three citations required) |
+| Mohr-Coulomb with exact stress return and corner handling (Clausen) | UMAT + VUMAT | `constitutive/mohr-coulomb-clausen/` (custom permission; cite Clausen et al. 2006, 2007, 2015) |
+
+Required citations for the Clausen model:
+
+1. Clausen, J., Damkilde, L. and Andersen, L. (2006). Efficient return algorithms for associated plasticity with multiple yield planes. *International Journal for Numerical Methods in Engineering* 66(6), 1036–1059. https://doi.org/10.1002/nme.1595
+2. Clausen, J., Damkilde, L. and Andersen, L. (2007). An efficient return algorithm for non-associated plasticity with linear yield criteria in principal stress space. *Computers & Structures* 85(23), 1795–1807. https://doi.org/10.1016/j.compstruc.2007.04.002
+3. Clausen, J., Damkilde, L. and Andersen, L. V. (2015). Robust and efficient handling of yield surface discontinuities in elasto-plastic finite element calculations. *Engineering Computations* 32(6), 1722–1752. https://doi.org/10.1108/EC-01-2014-0008
+
+BibTeX: [`constitutive/mohr-coulomb-clausen/references.bib`](../constitutive/mohr-coulomb-clausen/references.bib).
 ## The workflow that works
 
 ### 1. Verify the subroutine on one element first

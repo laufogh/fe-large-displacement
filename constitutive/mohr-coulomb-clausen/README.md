@@ -8,9 +8,24 @@ apex. `VUMAT_MohrCoulomb.f` adapts the Mohr-Coulomb UMAT to Abaqus/Explicit.
 
 The original Clausen sources are included with permission and are not covered
 by the repository-root MIT licence. The repository-authored adapter, tests, and
-documentation are MIT-licensed. Read [`LICENSE`](LICENSE): whenever the model is
+documentation are MIT-licensed. Read [`LICENSE`](LICENSE). Whenever the model is
 used, any publication, technical report, presentation, or distributed analysis
-must cite all three papers listed in [`PROVENANCE.md`](PROVENANCE.md).
+must cite all three papers:
+
+1. Clausen, J., Damkilde, L. and Andersen, L. (2006). Efficient return
+   algorithms for associated plasticity with multiple yield planes.
+   *International Journal for Numerical Methods in Engineering* 66(6),
+   1036–1059. https://doi.org/10.1002/nme.1595
+2. Clausen, J., Damkilde, L. and Andersen, L. (2007). An efficient return
+   algorithm for non-associated plasticity with linear yield criteria in
+   principal stress space. *Computers & Structures* 85(23), 1795–1807.
+   https://doi.org/10.1016/j.compstruc.2007.04.002
+3. Clausen, J., Damkilde, L. and Andersen, L. V. (2015). Robust and efficient
+   handling of yield surface discontinuities in elasto-plastic finite element
+   calculations. *Engineering Computations* 32(6), 1722–1752.
+   https://doi.org/10.1108/EC-01-2014-0008
+
+BibTeX is in [`references.bib`](references.bib).
 
 ## Material definition
 

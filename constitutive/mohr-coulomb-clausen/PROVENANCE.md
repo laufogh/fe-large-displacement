@@ -38,12 +38,14 @@ distributed analysis must cite all three papers:
    1036–1059. <https://doi.org/10.1002/nme.1595>
 2. Clausen, J., Damkilde, L. and Andersen, L. (2007). “An efficient return
    algorithm for non-associated plasticity with linear yield criteria in
-   principal stress space.” *Computers & Structures*, 85(23–24), 1795–1807.
+   principal stress space.” *Computers & Structures*, 85(23), 1795–1807.
    <https://doi.org/10.1016/j.compstruc.2007.04.002>
-3. Clausen, J., Damkilde, L. and Andersen, L. (2015). “Robust and efficient
+3. Clausen, J., Damkilde, L. and Andersen, L. V. (2015). “Robust and efficient
    handling of yield surface discontinuities in elasto-plastic finite element
    calculations.” *Engineering Computations*, 32(6), 1722–1752.
    <https://doi.org/10.1108/EC-01-2014-0008>
+
+BibTeX is in [`references.bib`](references.bib).
 
 ## Why the model is included
 

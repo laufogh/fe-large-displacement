@@ -62,8 +62,16 @@ whenever the model is used or the source bundle is redistributed.
 
 Use and redistribution require retaining the directory permission notice and
 crediting Johan Clausen. Publications, technical reports, presentations, and
-other distributed analyses that use the model must cite all three implementation
-papers recorded in that directory's `LICENSE` and `PROVENANCE.md`.
+other distributed analyses that use the model must cite:
+
+- Clausen, Damkilde and Andersen (2006), *Int. J. Numer. Meth. Engng* 66(6),
+  1036–1059. https://doi.org/10.1002/nme.1595
+- Clausen, Damkilde and Andersen (2007), *Computers & Structures* 85(23),
+  1795–1807. https://doi.org/10.1016/j.compstruc.2007.04.002
+- Clausen, Damkilde and Andersen (2015), *Engineering Computations* 32(6),
+  1722–1752. https://doi.org/10.1108/EC-01-2014-0008
+
+BibTeX is in `constitutive/mohr-coulomb-clausen/references.bib`.
 
 The VUMAT adapter has standalone gfortran equivalence tests. It has not yet been
 compiled and run through Abaqus on the target release; see `PORT-REPORT.md`.
