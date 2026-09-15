@@ -82,8 +82,10 @@ from abaqusConstants import (THREE_D, DEFORMABLE_BODY, EULERIAN, ON, OFF,
                              MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN,
                              XYPLANE, XZPLANE, YZPLANE, UNIFORM as UNI,
                              COUNTERCLOCKWISE)                  # noqa: E402
+import interaction                                              # noqa: E402
 import mesh                                                     # noqa: E402
 import regionToolset                                            # noqa: E402
+import step                                                     # noqa: E402
 
 from fldlib import (config, report, jobs, steps, materials, contact, ale, cel,
                     inpedit, subroutines)                       # noqa: E402
@@ -218,9 +220,10 @@ def build_soil_part(model, P, eulerian, seed):
 
 def build(P, model_name, case):
     eulerian = (P.method == 'cel')
-    if model_name in mdb.models:
-        del mdb.models[model_name]
-    model = mdb.Model(name=model_name)
+    if model_name in mdb.models.keys():
+        model = mdb.models[model_name]
+    else:
+        model = mdb.Model(name=model_name)
 
     caisson = build_caisson_part(model, P)
     soil, Rs, Ds, H = build_soil_part(model, P, eulerian, P.seed_fine)

@@ -20,8 +20,10 @@ from abaqusConstants import (
     MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
     PERCENTAGE, DEFAULT, DISSIPATED_ENERGY_FRACTION, HARD, PENALTY,
     ISOTROPIC, FRACTION, GLOBAL, SELF)
+import interaction
 import mesh
 import regionToolset
+import step
 
 
 # --- numbers you may want to change ---------------------------------------
@@ -57,9 +59,9 @@ print('working directory: %s' % workdir)
 
 # --- model ----------------------------------------------------------------
 
-if 'Model-1' in mdb.models:
-    del mdb.models['Model-1']
-model = mdb.Model(name='Model-1')
+# A new CAE session already has an empty Model-1. You cannot delete the last
+# model in the database, so reuse it.
+model = mdb.models['Model-1']
 
 # Soil block. Extruded in +z, then moved so the top surface sits at z = 0.
 sketch = model.ConstrainedSketch(name='soil', sheetSize=10.0 * SOIL_LEN)
@@ -167,10 +169,10 @@ prop.NormalBehavior(pressureOverclosure=HARD, allowSeparation=ON,
 prop.TangentialBehavior(
     formulation=PENALTY, directionality=ISOTROPIC, table=((FRICTION,),),
     maximumElasticSlip=FRACTION, fraction=0.005)
-contact = model.ContactStd(name='GeneralContact', createStepName='Push')
-contact.includedPairs.setValuesInStep(stepName='Push', useAllstar=True)
+contact = model.ContactStd(name='GeneralContact', createStepName='Initial')
+contact.includedPairs.setValuesInStep(stepName='Initial', useAllstar=True)
 contact.contactPropertyAssignments.appendInStep(
-    stepName='Push', assignments=((GLOBAL, SELF, 'Interface'),))
+    stepName='Initial', assignments=((GLOBAL, SELF, 'Interface'),))
 
 
 # --- write, check, maybe submit -------------------------------------------

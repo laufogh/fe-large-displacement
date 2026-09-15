@@ -17,8 +17,10 @@ from abaqusConstants import (
     MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
     PERCENTAGE, DEFAULT, HARD, PENALTY, ISOTROPIC, FRACTION, GLOBAL, SELF,
     DOMAIN, DOUBLE_PLUS_PACK, FULL)
+import interaction
 import mesh
 import regionToolset
+import step
 
 
 # --- numbers you may want to change ---------------------------------------
@@ -56,9 +58,9 @@ print('working directory: %s' % workdir)
 
 # --- model (same as explicit/model.py until the ALE block) ----------------
 
-if 'Model-1' in mdb.models:
-    del mdb.models['Model-1']
-model = mdb.Model(name='Model-1')
+# A new CAE session already has an empty Model-1. You cannot delete the last
+# model in the database, so reuse it.
+model = mdb.models['Model-1']
 
 sketch = model.ConstrainedSketch(name='soil', sheetSize=10.0 * SOIL_LEN)
 sketch.rectangle(point1=(-SOIL_LEN / 2.0, -SOIL_WID / 2.0),
@@ -186,28 +188,6 @@ model.steps['Push'].AdaptiveMeshDomain(
 
 # --- write, check, maybe submit -------------------------------------------
 
-job = mdb.Job(
-    name=JOB_NAME, model='Model-1', type=ANALYSIS,
-    explicitPrecision=DOUBLE_PLUS_PACK, nodalOutputPrecision=FULL,
-    numCpus=1, numDomains=1, parallelizationMethodExplicit=DOMAIN,
-    multiprocessingMode=DEFAULT, memory=90, memoryUnits=PERCENTAGE)
-job.writeInput()
-inp = os.path.join(workdir, JOB_NAME + '.inp')
-print('wrote %s' % inp)
-
-# CAE cannot write *Diagnostics. Insert it after *Dynamic, Explicit.
-_inject_diagnostics(inp)
-
-submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
-    '0', 'false', 'no', 'off')
-if submit:
-    job.submit(consistencyChecking=OFF)
-    job.waitForCompletion()
-    print('job finished. in the .msg, look for nodes moved. zero means inert.')
-else:
-    print('FLD_SUBMIT=0: deck written, not submitted.')
-
-
 def _inject_diagnostics(inp_path, after_static=False):
     """Insert *Diagnostics after the procedure card. CAE cannot write this."""
     lines = open(inp_path).readlines()
@@ -228,3 +208,24 @@ def _inject_diagnostics(inp_path, after_static=False):
     fh = open(inp_path, 'w')
     fh.write(''.join(out))
     fh.close()
+
+job = mdb.Job(
+    name=JOB_NAME, model='Model-1', type=ANALYSIS,
+    explicitPrecision=DOUBLE_PLUS_PACK, nodalOutputPrecision=FULL,
+    numCpus=1, numDomains=1, parallelizationMethodExplicit=DOMAIN,
+    multiprocessingMode=DEFAULT, memory=90, memoryUnits=PERCENTAGE)
+job.writeInput()
+inp = os.path.join(workdir, JOB_NAME + '.inp')
+print('wrote %s' % inp)
+
+# CAE cannot write *Diagnostics. Insert it after *Dynamic, Explicit.
+_inject_diagnostics(inp)
+
+submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
+    '0', 'false', 'no', 'off')
+if submit:
+    job.submit(consistencyChecking=OFF)
+    job.waitForCompletion()
+    print('job finished. in the .msg, look for nodes moved. zero means inert.')
+else:
+    print('FLD_SUBMIT=0: deck written, not submitted.')

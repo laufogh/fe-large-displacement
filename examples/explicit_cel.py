@@ -16,8 +16,10 @@ from abaqusConstants import (
     STRUCTURED, EXPLICIT, MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN,
     STEP, ANALYSIS, PERCENTAGE, DEFAULT, HARD, PENALTY, ISOTROPIC, FRACTION,
     GLOBAL, SELF, DOMAIN, DOUBLE_PLUS_PACK, FULL, XYPLANE)
+import interaction
 import mesh
 import regionToolset
+import step
 
 
 # --- numbers you may want to change ---------------------------------------
@@ -56,9 +58,9 @@ print('working directory: %s' % workdir)
 
 # --- model ----------------------------------------------------------------
 
-if 'Model-1' in mdb.models:
-    del mdb.models['Model-1']
-model = mdb.Model(name='Model-1')
+# A new CAE session already has an empty Model-1. You cannot delete the last
+# model in the database, so reuse it.
+model = mdb.models['Model-1']
 
 # Eulerian box: soil depth PLUS empty space above it for heave.
 H = VOID
