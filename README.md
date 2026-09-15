@@ -2,11 +2,15 @@
 
 Abaqus models for large-displacement geotechnics.
 
+![Strip indenter load–displacement](media/indenter-load-displacement.png)
+
+Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
+
 ## Start here
 
 1. [`documentation/software.pdf`](documentation/software.pdf) — how to read the software.
 2. [`documentation/formulations.pdf`](documentation/formulations.pdf) — what to change at each formulation.
-3. Run `examples/implicit.py` and watch it fail.
+3. Run `examples/implicit.py`.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run

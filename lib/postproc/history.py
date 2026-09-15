@@ -48,10 +48,15 @@ def read_rp_history(odb_path, set_name, step_name=None):
         steps = [step_name] if step_name else list(odb.steps.keys())
         for sname in steps:
             step = odb.steps[sname]
-            matches = [k for k in step.historyRegions
-                       if set_name.upper() in k.upper()]
+            names = list(step.historyRegions.keys())
+            matches = [k for k in names if set_name.upper() in k.upper()]
             if not matches:
-                available = ', '.join(sorted(step.historyRegions.keys())[:8])
+                # CAE often stores the RP as "Node ASSEMBLY.<id>", not the set name.
+                matches = [k for k in names
+                           if k.upper().startswith('NODE ')
+                           and 'RF3' in step.historyRegions[k].historyOutputs.keys()]
+            if not matches:
+                available = ', '.join(sorted(names)[:8])
                 raise KeyError(
                     'no history region matching %r in step %r. Available: %s. '
                     'Did you request history output at the reference point?'

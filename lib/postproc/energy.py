@@ -66,7 +66,7 @@ def read_energies(odb_path, step_name=None):
         for sname in steps:
             step = odb.steps[sname]
             region = None
-            for key in step.historyRegions:
+            for key in step.historyRegions.keys():
                 if key.lower().startswith('assembly'):
                     region = step.historyRegions[key]
                     break
