@@ -42,9 +42,9 @@ wrong.
 Debugging a UMAT inside a 50 000-element penetration analysis costs weeks. On one
 element it costs seconds.
 
-See [`docs/06-constitutive-models.md`](../docs/06-constitutive-models.md) for the
-full workflow, the `*Depvar` and state-initialisation traps, and why an
-Abaqus/Explicit job full of NaN runs happily to completion.
+Getting `*Depvar` wrong, or leaving state variables uninitialised, produces
+NaN. Abaqus/Explicit integrates NaN to the end of the step and writes a
+complete ODB. Check the ODB is finite before trusting it.
 
 ## Adding your own
 

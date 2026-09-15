@@ -52,8 +52,7 @@ Precision & double & set \texttt{DOUBLE\_PLUS\_PACK} \\
 
 Standard is the right tool until the soil starts to fail in a large-displacement
 sense. Explicit is the right tool after that, provided the run is shown to be
-quasi-static (\texttt{ALLKE}/\texttt{ALLIE}). See
-\texttt{docs/01-explicit-quasi-static.md}.
+quasi-static (\texttt{ALLKE}/\texttt{ALLIE}).
 
 UMAT and VUMAT are different calling conventions for the same constitutive
 idea. A closed-form Mohr--Coulomb return can be wrapped. A model with
@@ -79,59 +78,34 @@ Lagrangian. CEL is Explicit only. There is no implicit CEL.
 \small
 \begin{tabular}{@{}lp{0.62\textwidth}@{}}
 \toprule
-\texttt{lib/fldlib/} & thin wrappers over one API call or one idiom each \\
-\texttt{lib/postproc/} & ODB energy and history extraction \\
-\texttt{examples/indenter/} & one complete script per formulation \\
-\texttt{examples/suction\_caisson/} & introduction to caisson installation \\
+\texttt{examples/} & one complete script per formulation \\
 \texttt{constitutive/} & UMAT/VUMAT sources, each with its own licence \\
-\texttt{docs/} & measured findings from Abaqus 2021 jobs that were actually run \\
-\texttt{tools/} & \texttt{check\_odb\_finite.py} and similar \\
 \texttt{teaching/} & this PDF, and the formulations companion \\
 \bottomrule
 \end{tabular}
 \end{center}
-
-\texttt{fldlib} does not hide state and does not skip work silently. If a helper
-cannot do what it was asked, it raises.
 
 \section{How a job is launched}
 
 \begin{verbatim}
 set FLD_WORKDIR=C:\abq\run
 set FLD_SUBMIT=0
-abaqus cae noGUI=examples/indenter/implicit/model.py
+abaqus cae noGUI=examples/implicit.py
 \end{verbatim}
 
-\texttt{FLD\_SUBMIT=0} builds and checks decks without solving. Start there.
-\texttt{FLD\_CASES}, \texttt{FLD\_NCPU} and \texttt{FLD\_<PARAM>} override
-declared parameters. The log prints the full parameter table before anything
-is built.
+\texttt{FLD\_SUBMIT=0} writes the deck without solving. Start there.
 
 When a user subroutine is compiled, launch through \texttt{abaqus.bat}, never
 \texttt{ABQLauncher.exe} directly. Paths with spaces break the Fortran compile.
-See \texttt{docs/abaqus-launch-guide.md}.
 
 \section{The habit that catches silent failures}
 
-Write the deck. Read it. Assert. Then submit. Three failures produce a normal
-ODB and no warning:
+Write the deck. Read it. Then submit. Three failures produce a normal ODB and
+no warning: an ALE domain that never sweeps, a CEL domain with no void for
+heave, and a VUMAT returning NaN (Explicit integrates it to the end).
 
-\begin{enumerate}
-  \item An ALE domain that is defined but never sweeps ---
-        \texttt{fldlib.ale.assert\_active} reads the \texttt{.msg}.
-  \item A CEL domain with no void for heave ---
-        \texttt{fldlib.cel.check\_void\_fraction}.
-  \item A VUMAT returning NaN --- Explicit integrates it to the end.
-        \texttt{tools/check\_odb\_finite.py}.
-\end{enumerate}
-
-\section{What is measured}
-
-The findings in \texttt{docs/} came from Abaqus 2021 jobs that were run. Trust
-those numbers. On a new machine, write and check the decks with
-\texttt{FLD\_SUBMIT=0} before submitting.
-
-The code that changes from implicit to CEL is
+On a new machine, write the decks with \texttt{FLD\_SUBMIT=0} before
+submitting. The code that changes from implicit to CEL is
 \texttt{teaching/formulations.pdf}.
 
 \section{Clausen Mohr--Coulomb}

@@ -1,32 +1,25 @@
-"""Implicit ALE. Same Standard model as implicit/, plus an adaptive mesh.
+"""Explicit Lagrangian strip indenter.
 
-    abaqus cae noGUI=examples/indenter/implicit_ale/model.py
+    abaqus cae noGUI=examples/explicit.py
 
-Abaqus/Standard ALE is limited. Expect it to fail in much the same place
-as the implicit Lagrangian run. This file is complete. Diff it against
-implicit/model.py to see the extra lines.
+Abaqus/Explicit, *Dynamic Explicit, velocity control. No convergence to
+lose. It will abort on element distortion instead.
+
+This file is complete. Diff it against examples/implicit.py.
 """
 
 from __future__ import print_function
 
 import os
-import sys
-
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
-sys.path.insert(0, os.path.join(_ROOT, 'lib'))
 
 from abaqus import mdb
 from abaqusConstants import (
-    THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, STANDARD,
+    THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, EXPLICIT,
     MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
-    PERCENTAGE, DEFAULT, DISSIPATED_ENERGY_FRACTION, HARD, PENALTY,
-    ISOTROPIC, FRACTION, GLOBAL, SELF)
+    PERCENTAGE, DEFAULT, HARD, PENALTY, ISOTROPIC, FRACTION, GLOBAL, SELF,
+    DOMAIN, DOUBLE_PLUS_PACK, FULL)
 import mesh
 import regionToolset
-
-from fldlib.report import InpCheck
-from fldlib.inpedit import inject_diagnostics
 
 
 # --- numbers you may want to change ---------------------------------------
@@ -39,13 +32,15 @@ SEED = 0.010
 IND_HALF = 0.0225
 IND_THICK = 0.010
 IND_DEPTH = 0.150
+IND_VEL = 1.0            # m/s, scaled well above reality. check ALLKE/ALLIE
+RAMP_FRAC = 0.05         # smooth-step ramp as a fraction of the step
 
 SOIL_E = 20.0e6
 SOIL_NU = 0.30
-SOIL_RHO = 1651.6
+SOIL_RHO = 1651.6        # kg/m3  required for Explicit
 FRICTION = 0.5
 
-JOB_NAME = 'implicit_ale'
+JOB_NAME = 'explicit'
 
 
 # --- working directory ----------------------------------------------------
@@ -60,7 +55,7 @@ os.chdir(workdir)
 print('working directory: %s' % workdir)
 
 
-# --- model (same as implicit/model.py until the ALE block) ----------------
+# --- model ----------------------------------------------------------------
 
 if 'Model-1' in mdb.models:
     del mdb.models['Model-1']
@@ -79,6 +74,7 @@ indenter = model.Part(name='Indenter', dimensionality=THREE_D,
                       type=DEFORMABLE_BODY)
 indenter.BaseSolidExtrude(sketch=sketch_i, depth=IND_THICK)
 
+# *Density is required. The stable time increment is L_min / wave_speed.
 soil_mat = model.Material(name='SoilMat')
 soil_mat.Density(table=((SOIL_RHO,),))
 soil_mat.Elastic(table=((SOIL_E, SOIL_NU),))
@@ -95,8 +91,8 @@ indenter.SectionAssignment(region=regionToolset.Region(cells=indenter.cells),
                            sectionName='IndSec', offsetType=MIDDLE_SURFACE,
                            thicknessAssignment=FROM_SECTION)
 
-# ALE only works on first-order reduced-integration solids (C3D8R).
-elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=STANDARD)
+# Same C3D8R, Explicit library.
+elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=EXPLICIT)
 for part in (soil, indenter):
     part.setElementType(regions=(part.cells,), elemTypes=(elem,))
     part.setMeshControls(regions=part.cells, elemShape=HEX, technique=STRUCTURED)
@@ -119,17 +115,20 @@ model.RigidBody(name='IndRigid', refPointRegion=rp_region,
                 bodyRegion=regionToolset.Region(cells=ind_inst.cells),
                 refPointAtCOM=ON)
 
-model.StaticStep(
-    name='Push', previous='Initial', nlgeom=ON, timePeriod=1.0,
-    initialInc=0.005, minInc=1.0e-8, maxInc=0.05, maxNumInc=1000,
-    stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
-    stabilizationMagnitude=2.0e-4, adaptiveDampingRatio=0.05,
-    continueDampingFactors=ON)
-model.TabularAmplitude(name='Ramp', timeSpan=STEP,
-                       data=((0.0, 0.0), (1.0, 1.0)))
+# *Dynamic, Explicit. No automatic stabilisation. Bulk viscosity is on by
+# default (watch ALLVD). Do not add extra damping to hide kinetic energy.
+time_period = IND_DEPTH / float(IND_VEL)
+model.ExplicitDynamicsStep(
+    name='Push', previous='Initial', timePeriod=time_period,
+    nlgeom=ON, improvedDtMethod=ON)
+model.SmoothStepAmplitude(
+    name='Ramp', timeSpan=STEP,
+    data=((0.0, 0.0), (RAMP_FRAC * time_period, 1.0)))
 model.HistoryOutputRequest(
     name='Energies', createStepName='Push',
-    variables=('ALLIE', 'ALLSD', 'ALLWK', 'ETOTAL'), numIntervals=200)
+    variables=('ALLIE', 'ALLKE', 'ALLAE', 'ALLDC', 'ALLVD', 'ALLWK',
+               'ETOTAL'),
+    numIntervals=200)
 model.HistoryOutputRequest(
     name='RP', createStepName='Push', region=asm.sets['IndRP'],
     variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
@@ -154,9 +153,10 @@ if len(base) == 0:
 model.EncastreBC(name='Base', createStepName='Initial',
                  region=regionToolset.Region(faces=base))
 
-model.DisplacementBC(
+# Velocity control, not displacement. Sign is negative: penetration is -z.
+model.VelocityBC(
     name='Push', createStepName='Push', region=asm.sets['IndRP'],
-    u1=0.0, u2=0.0, u3=-IND_DEPTH, ur1=0.0, ur2=0.0, ur3=0.0,
+    v1=0.0, v2=0.0, v3=-IND_VEL, vr1=0.0, vr2=0.0, vr3=0.0,
     amplitude='Ramp', distributionType=UNIFORM)
 
 prop = model.ContactProperty('Interface')
@@ -165,57 +165,35 @@ prop.NormalBehavior(pressureOverclosure=HARD, allowSeparation=ON,
 prop.TangentialBehavior(
     formulation=PENALTY, directionality=ISOTROPIC, table=((FRICTION,),),
     maximumElasticSlip=FRACTION, fraction=0.005)
-contact = model.ContactStd(name='GeneralContact', createStepName='Push')
+contact = model.ContactExp(name='GeneralContact', createStepName='Push')
 contact.includedPairs.setValuesInStep(stepName='Push', useAllstar=True)
 contact.contactPropertyAssignments.appendInStep(
     stepName='Push', assignments=((GLOBAL, SELF, 'Interface'),))
 
-
-# --- ALE (the only extra block versus implicit/model.py) ------------------
-# Restrict the domain to a box around the indenter. An empty set is silent:
-# Abaqus will not warn, and ALE will do nothing.
-
-half = 3.0 * IND_HALF
-zmin = max(-1.3 * IND_DEPTH, -SOIL_DEP + 2.0 * SEED)
-ale_elems = soil_inst.elements.getByBoundingBox(
-    xMin=-half, xMax=half, yMin=-SOIL_WID, yMax=SOIL_WID,
-    zMin=zmin, zMax=0.0)
-if len(ale_elems) == 0:
-    raise RuntimeError('ALE box is empty. ALE would run and do nothing.')
-asm.Set(name='ALE_Box', elements=ale_elems)
-print('ALE elements: %d' % len(asm.sets['ALE_Box'].elements))
-
-model.AdaptiveMeshControl(name='ALE_BC', smoothingPriority=UNIFORM)
-# Standard has no initial mesh sweeps. Do not pass initialMeshSweeps.
-model.steps['Push'].AdaptiveMeshDomain(
-    region=asm.sets['ALE_Box'], controls='ALE_BC',
-    frequency=10, meshSweeps=1)
+# Optional mass scaling: uncomment to raise the stable increment.
+# from abaqusConstants import SEMI_AUTOMATIC, BELOW_MIN, THROUGHOUT_STEP
+# model.steps['Push'].setValues(massScaling=(
+#     (SEMI_AUTOMATIC, None, THROUGHOUT_STEP, 0.0, 1.0e-5, BELOW_MIN,
+#      1, 0, 0.0, 0.0, 0, None),))
 
 
 # --- write, check, maybe submit -------------------------------------------
 
-job = mdb.Job(name=JOB_NAME, model='Model-1', type=ANALYSIS,
-              numCpus=1, multiprocessingMode=DEFAULT,
-              memory=90, memoryUnits=PERCENTAGE)
+job = mdb.Job(
+    name=JOB_NAME, model='Model-1', type=ANALYSIS,
+    explicitPrecision=DOUBLE_PLUS_PACK, nodalOutputPrecision=FULL,
+    numCpus=1, numDomains=1, parallelizationMethodExplicit=DOMAIN,
+    multiprocessingMode=DEFAULT, memory=90, memoryUnits=PERCENTAGE)
 job.writeInput()
 inp = os.path.join(workdir, JOB_NAME + '.inp')
 print('wrote %s' % inp)
-
-# CAE cannot write *Diagnostics. This inserts it after *Static.
-inject_diagnostics(inp, mode='summary', include_static=True)
-
-chk = InpCheck(inp)
-chk.requires(r'^\*Static', 'static procedure')
-chk.requires(r'^\*Adaptive Mesh Controls, name=ALE_BC', 'ALE controls')
-chk.requires(r'^\*Adaptive Mesh,.*elset=ALE_Box', 'restricted ALE domain')
-chk.requires(r'^\*Diagnostics, adaptive mesh=summary', 'ALE diagnostics')
-chk.report()
+print('open that file and check: *Dynamic, Explicit, type=VELOCITY, ALLKE')
 
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')
 if submit:
     job.submit(consistencyChecking=OFF)
     job.waitForCompletion()
-    print('job finished. look at the .sta for the abort message.')
+    print('job finished. check ALLKE/ALLIE in the ODB. look at the .sta.')
 else:
     print('FLD_SUBMIT=0: deck written, not submitted.')

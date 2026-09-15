@@ -1,19 +1,14 @@
 """Explicit CEL. The soil is a fixed box of space. The indenter stays Lagrangian.
 
-    abaqus cae noGUI=examples/indenter/explicit_cel/model.py
+    abaqus cae noGUI=examples/explicit_cel.py
 
-This file is complete. Diff it against explicit/model.py. The soil part is
-the part that changes.
+This file is complete. Diff it against examples/explicit.py. The soil part
+is the part that changes.
 """
 
 from __future__ import print_function
 
 import os
-import sys
-
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
-sys.path.insert(0, os.path.join(_ROOT, 'lib'))
 
 from abaqus import mdb
 from abaqusConstants import (
@@ -23,8 +18,6 @@ from abaqusConstants import (
     GLOBAL, SELF, DOMAIN, DOUBLE_PLUS_PACK, FULL, XYPLANE)
 import mesh
 import regionToolset
-
-from fldlib.report import InpCheck
 
 
 # --- numbers you may want to change ---------------------------------------
@@ -220,15 +213,7 @@ job = mdb.Job(
 job.writeInput()
 inp = os.path.join(workdir, JOB_NAME + '.inp')
 print('wrote %s' % inp)
-
-chk = InpCheck(inp)
-chk.requires(r'^\*Eulerian Section', 'Eulerian section')
-chk.requires(r'EC3D8R', 'Eulerian elements')
-chk.requires(r'^\*Initial Conditions, type=VOLUME FRACTION',
-             'volume fraction assigned')
-chk.requires(r'^\*Contact\b', 'general contact')
-chk.forbids(r'^\*Adaptive Mesh,', 'no ALE: the Eulerian mesh never moves')
-chk.report()
+print('open that file and check: *Eulerian Section, EC3D8R, VOLUME FRACTION')
 
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')

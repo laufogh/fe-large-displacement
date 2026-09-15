@@ -1,7 +1,7 @@
 """Suction caisson installation, lab scale: jacked phase then suction-assisted
 phase.
 
-    abaqus cae noGUI=examples/suction_caisson/model.py
+    abaqus cae noGUI=examples/suction_caisson.py
 
 An introduction to the problem. A large penetration, a thin skirt that the
 soil has to flow around, two phases with different driving mechanisms, and a
@@ -69,7 +69,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(os.path.dirname(_HERE))
+_ROOT = os.path.dirname(_HERE)
 sys.path.insert(0, os.path.join(_ROOT, 'lib'))
 sys.path.insert(0, os.path.join(_ROOT, 'examples'))
 
@@ -399,7 +399,7 @@ def _add_ale(model, asm, soil_inst, P, n_soil, step_names):
     Two regions rather than one because the two zones deform for different
     reasons -- the tip shears a narrow band, the plug heaves as a body -- and
     because two well-separated regions parallelise far better than one large
-    one (see docs/03-ale-multi-region-parallel.md).
+    one.
 
     They must not touch: regions sharing a face are treated as one region.
     """
@@ -616,7 +616,7 @@ def run_case(case, workdir, P):
             info = ale.read_msg_activity(msg)
             row['pct_moved'] = info['avg_pct_moved']
             if not info['active']:
-                print('  *** ALE was DEFINED BUT INERT -- see docs/02-ale-adaptive-meshing.md ***')
+                print('  *** ALE was DEFINED BUT INERT ***')
 
     odb = os.path.join(workdir, job_name + '.odb')
     if os.path.isfile(odb):
@@ -651,7 +651,7 @@ def main():
 
   Modelling it properly needs a coupled pore-fluid formulation. The Staubach
   upstream repository has a hydro-mechanically coupled VUMAT; it is not
-  vendored here. See `docs/07-suction-caisson.md` for what would have to change.
+  vendored here.
 """)
 
         rows = runner.run_study(

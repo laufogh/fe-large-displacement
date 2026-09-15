@@ -70,7 +70,7 @@ cavitation and effective contact stress. That is **not** vendored here, because
 this repository's examples are all dry/total-stress.
 
 It is the right starting point if you need the seepage part of suction caisson
-installation — see [`docs/07-suction-caisson.md`](../../docs/07-suction-caisson.md).
+installation.
 Get it from the upstream repository, with the accompanying PDF, and read the
 papers it references first.
 

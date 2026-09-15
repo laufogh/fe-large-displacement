@@ -52,7 +52,6 @@ Configure with `FLD_UMAT_IMPLICIT`, `FLD_UMAT_EXPLICIT`, `FLD_UMAT_CONSTANTS` an
 
 ## Reading
 
-* [06-constitutive-models.md](../../docs/06-constitutive-models.md)
 * [README.md](../README.md)
 
 The full explanation is the module docstring at the top of

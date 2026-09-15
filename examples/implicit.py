@@ -1,53 +1,46 @@
-"""Explicit Lagrangian strip indenter.
+"""Implicit Lagrangian strip indenter.
 
-    abaqus cae noGUI=examples/indenter/explicit/model.py
+    abaqus cae noGUI=examples/implicit.py
 
-Abaqus/Explicit, *Dynamic Explicit, velocity control. No convergence to
-lose. It will abort on element distortion instead.
+Abaqus/Standard, *Static, displacement control. Expect it to stop
+converging. That failure is the point of this script.
 
-This file is complete. Diff it against implicit/model.py.
+This file is complete. Read it top to bottom. The other scripts in
+examples/ are the same model with the extra lines that each formulation
+needs.
 """
 
 from __future__ import print_function
 
 import os
-import sys
-
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
-sys.path.insert(0, os.path.join(_ROOT, 'lib'))
 
 from abaqus import mdb
 from abaqusConstants import (
-    THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, EXPLICIT,
+    THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, STANDARD,
     MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
-    PERCENTAGE, DEFAULT, HARD, PENALTY, ISOTROPIC, FRACTION, GLOBAL, SELF,
-    DOMAIN, DOUBLE_PLUS_PACK, FULL)
+    PERCENTAGE, DEFAULT, DISSIPATED_ENERGY_FRACTION, HARD, PENALTY,
+    ISOTROPIC, FRACTION, GLOBAL, SELF)
 import mesh
 import regionToolset
-
-from fldlib.report import InpCheck
 
 
 # --- numbers you may want to change ---------------------------------------
 
-SOIL_LEN = 0.30
-SOIL_WID = 0.20
-SOIL_DEP = 0.20
-SEED = 0.010
+SOIL_LEN = 0.30          # m, block size in x
+SOIL_WID = 0.20          # m, block size in y
+SOIL_DEP = 0.20          # m, block size in z
+SEED = 0.010             # m, element size
 
-IND_HALF = 0.0225
-IND_THICK = 0.010
-IND_DEPTH = 0.150
-IND_VEL = 1.0            # m/s, scaled well above reality. check ALLKE/ALLIE
-RAMP_FRAC = 0.05         # smooth-step ramp as a fraction of the step
+IND_HALF = 0.0225        # m, half-width of the strip
+IND_THICK = 0.010        # m, thickness of the strip
+IND_DEPTH = 0.150        # m, how far to push (it will not get this far)
 
-SOIL_E = 20.0e6
+SOIL_E = 20.0e6          # Pa
 SOIL_NU = 0.30
-SOIL_RHO = 1651.6        # kg/m3  required for Explicit
+SOIL_RHO = 1651.6        # kg/m3  (unused by *Static, kept so the files match)
 FRICTION = 0.5
 
-JOB_NAME = 'explicit'
+JOB_NAME = 'implicit'
 
 
 # --- working directory ----------------------------------------------------
@@ -68,12 +61,14 @@ if 'Model-1' in mdb.models:
     del mdb.models['Model-1']
 model = mdb.Model(name='Model-1')
 
+# Soil block. Extruded in +z, then moved so the top surface sits at z = 0.
 sketch = model.ConstrainedSketch(name='soil', sheetSize=10.0 * SOIL_LEN)
 sketch.rectangle(point1=(-SOIL_LEN / 2.0, -SOIL_WID / 2.0),
                  point2=(SOIL_LEN / 2.0, SOIL_WID / 2.0))
 soil = model.Part(name='Soil', dimensionality=THREE_D, type=DEFORMABLE_BODY)
 soil.BaseSolidExtrude(sketch=sketch, depth=SOIL_DEP)
 
+# Strip indenter.
 sketch_i = model.ConstrainedSketch(name='indenter', sheetSize=10.0 * SOIL_LEN)
 sketch_i.rectangle(point1=(-IND_HALF, -SOIL_WID / 2.0),
                    point2=(IND_HALF, SOIL_WID / 2.0))
@@ -81,7 +76,7 @@ indenter = model.Part(name='Indenter', dimensionality=THREE_D,
                       type=DEFORMABLE_BODY)
 indenter.BaseSolidExtrude(sketch=sketch_i, depth=IND_THICK)
 
-# *Density is required. The stable time increment is L_min / wave_speed.
+# Elastic soil. Density is written so this file matches the Explicit ones.
 soil_mat = model.Material(name='SoilMat')
 soil_mat.Density(table=((SOIL_RHO,),))
 soil_mat.Elastic(table=((SOIL_E, SOIL_NU),))
@@ -98,8 +93,8 @@ indenter.SectionAssignment(region=regionToolset.Region(cells=indenter.cells),
                            sectionName='IndSec', offsetType=MIDDLE_SURFACE,
                            thicknessAssignment=FROM_SECTION)
 
-# Same C3D8R, Explicit library.
-elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=EXPLICIT)
+# First-order reduced-integration hex, Standard library.
+elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=STANDARD)
 for part in (soil, indenter):
     part.setElementType(regions=(part.cells,), elemTypes=(elem,))
     part.setMeshControls(regions=part.cells, elemShape=HEX, technique=STRUCTURED)
@@ -122,24 +117,24 @@ model.RigidBody(name='IndRigid', refPointRegion=rp_region,
                 bodyRegion=regionToolset.Region(cells=ind_inst.cells),
                 refPointAtCOM=ON)
 
-# *Dynamic, Explicit. No automatic stabilisation. Bulk viscosity is on by
-# default (watch ALLVD). Do not add extra damping to hide kinetic energy.
-time_period = IND_DEPTH / float(IND_VEL)
-model.ExplicitDynamicsStep(
-    name='Push', previous='Initial', timePeriod=time_period,
-    nlgeom=ON, improvedDtMethod=ON)
-model.SmoothStepAmplitude(
-    name='Ramp', timeSpan=STEP,
-    data=((0.0, 0.0), (RAMP_FRAC * time_period, 1.0)))
+# *Static, geometrically nonlinear, automatic stabilisation (fictitious
+# viscous damping). Check ALLSD against ALLIE if the job runs far enough.
+model.StaticStep(
+    name='Push', previous='Initial', nlgeom=ON, timePeriod=1.0,
+    initialInc=0.005, minInc=1.0e-8, maxInc=0.05, maxNumInc=1000,
+    stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
+    stabilizationMagnitude=2.0e-4, adaptiveDampingRatio=0.05,
+    continueDampingFactors=ON)
+model.TabularAmplitude(name='Ramp', timeSpan=STEP,
+                       data=((0.0, 0.0), (1.0, 1.0)))
 model.HistoryOutputRequest(
     name='Energies', createStepName='Push',
-    variables=('ALLIE', 'ALLKE', 'ALLAE', 'ALLDC', 'ALLVD', 'ALLWK',
-               'ETOTAL'),
-    numIntervals=200)
+    variables=('ALLIE', 'ALLSD', 'ALLWK', 'ETOTAL'), numIntervals=200)
 model.HistoryOutputRequest(
     name='RP', createStepName='Push', region=asm.sets['IndRP'],
     variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
 
+# Rollers on the four sides, encastre on the base.
 zc = -SOIL_DEP / 2.0
 for name, point, dof in (
         ('XMIN', (-SOIL_LEN / 2.0, 0.0, zc), 1),
@@ -160,10 +155,10 @@ if len(base) == 0:
 model.EncastreBC(name='Base', createStepName='Initial',
                  region=regionToolset.Region(faces=base))
 
-# Velocity control, not displacement. Sign is negative: penetration is -z.
-model.VelocityBC(
+# Displacement control: push the rigid body down by IND_DEPTH over the step.
+model.DisplacementBC(
     name='Push', createStepName='Push', region=asm.sets['IndRP'],
-    v1=0.0, v2=0.0, v3=-IND_VEL, vr1=0.0, vr2=0.0, vr3=0.0,
+    u1=0.0, u2=0.0, u3=-IND_DEPTH, ur1=0.0, ur2=0.0, ur3=0.0,
     amplitude='Ramp', distributionType=UNIFORM)
 
 prop = model.ContactProperty('Interface')
@@ -172,48 +167,27 @@ prop.NormalBehavior(pressureOverclosure=HARD, allowSeparation=ON,
 prop.TangentialBehavior(
     formulation=PENALTY, directionality=ISOTROPIC, table=((FRICTION,),),
     maximumElasticSlip=FRACTION, fraction=0.005)
-contact = model.ContactExp(name='GeneralContact', createStepName='Push')
+contact = model.ContactStd(name='GeneralContact', createStepName='Push')
 contact.includedPairs.setValuesInStep(stepName='Push', useAllstar=True)
 contact.contactPropertyAssignments.appendInStep(
     stepName='Push', assignments=((GLOBAL, SELF, 'Interface'),))
 
-# Optional mass scaling: uncomment to raise the stable increment.
-# from abaqusConstants import SEMI_AUTOMATIC, BELOW_MIN, THROUGHOUT_STEP
-# model.steps['Push'].setValues(massScaling=(
-#     (SEMI_AUTOMATIC, None, THROUGHOUT_STEP, 0.0, 1.0e-5, BELOW_MIN,
-#      1, 0, 0.0, 0.0, 0, None),))
-
 
 # --- write, check, maybe submit -------------------------------------------
 
-job = mdb.Job(
-    name=JOB_NAME, model='Model-1', type=ANALYSIS,
-    explicitPrecision=DOUBLE_PLUS_PACK, nodalOutputPrecision=FULL,
-    numCpus=1, numDomains=1, parallelizationMethodExplicit=DOMAIN,
-    multiprocessingMode=DEFAULT, memory=90, memoryUnits=PERCENTAGE)
+job = mdb.Job(name=JOB_NAME, model='Model-1', type=ANALYSIS,
+              numCpus=1, multiprocessingMode=DEFAULT,
+              memory=90, memoryUnits=PERCENTAGE)
 job.writeInput()
 inp = os.path.join(workdir, JOB_NAME + '.inp')
 print('wrote %s' % inp)
-
-# Optional distortion control: CAE cannot write *Section Controls.
-# Uncomment the next three lines to inject it. Do not combine with
-# hourglass=ENHANCED. See docs/04-section-controls.md.
-# from fldlib.inpedit import inject_section_controls, section_controls_keyword
-# kw = section_controls_keyword('SC-Soil', distortion_control=True)
-# inject_section_controls(inp, kw, r'^(\*Solid Section,[^\n]*material=SoilMat[^\n]*)$')
-
-chk = InpCheck(inp)
-chk.requires(r'^\*Dynamic, Explicit', 'explicit dynamics')
-chk.requires(r'^\*Boundary,.*type=VELOCITY', 'velocity control')
-chk.forbids(r'^\*Adaptive Mesh,', 'no ALE in this script')
-chk.requires(r'ALLKE', 'kinetic energy requested')
-chk.report()
+print('open that file and check: *Static, nlgeom=YES, no *Adaptive Mesh')
 
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')
 if submit:
     job.submit(consistencyChecking=OFF)
     job.waitForCompletion()
-    print('job finished. check ALLKE/ALLIE in the ODB. look at the .sta.')
+    print('job finished. look at the .sta for the abort message.')
 else:
     print('FLD_SUBMIT=0: deck written, not submitted.')
