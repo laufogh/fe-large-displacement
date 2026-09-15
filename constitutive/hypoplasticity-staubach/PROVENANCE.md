@@ -36,11 +36,16 @@ implementation is not the model.
 | `HPP_Staubach_implicit.f` | UMAT for Abaqus/Standard |
 | `HPP_Staubach_explicit.f` | Explicit-integration version of the model |
 | `HPP_Staubach_explicit_noclamp.f` | As above, without the state clamping. This is the variant `call_explicit.f` includes. |
-| `VUMAT_dry_Staubach.f` | Dry / uncoupled VUMAT interface. Derived from the upstream hydro-mechanically coupled `VUMAT_HMC_Staubach_Abq2023.f` with all pore-fluid coupling removed: total stress = effective stress. |
+| `VUMAT_dry_Staubach.f` | Dry / uncoupled VUMAT interface. Derived from the hydro-mechanically coupled `VUMAT_HMC_Staubach_Abq2023.f` with all pore-fluid coupling removed: total stress = effective stress. |
+| `VUMAT_HMC_Staubach_Abq2023.f` | Hydro-mechanically coupled VUMAT. Pore pressure is carried on the temperature DOF. |
+| `call2023.f` | Top-level file for a coupled Explicit job (`user=`). |
+| `vuamp.f` | User amplitude used by the coupled pile-driving example. |
+| `vusdfld_parallel.f` | VUSDFLD: effective contact stress from pore pressure. |
+| `vufield_parallel.f` | VUFIELD: maps that contact field onto the slave surface. |
 | `tools.f` | Tensor operations (Niemunis) |
 | `sdvini.f` | SDVINI routine setting the initial void ratio from a Bauer profile |
 | `call_implicit.f` | Top-level file for `user=` in Abaqus/Standard |
-| `call_explicit.f` | Top-level file for `user=` in Abaqus/Explicit |
+| `call_explicit.f` | Top-level file for a dry Explicit job (`user=`) |
 | `constants.txt` | A calibration. **See the warning below.** |
 
 ## The calibration is not part of the model
@@ -63,24 +68,26 @@ whose calibration you used.
 
 ## Hydro-mechanical coupling
 
-The upstream repository contains the hydro-mechanically coupled VUMAT
-(`VUMAT_HMC_Staubach_Abq2023.f`), which carries pore pressure as a state variable
-and solves the fluid mass balance alongside the momentum equation, including
-cavitation and effective contact stress. That is **not** vendored here, because
-this repository's examples are all dry/total-stress.
+`VUMAT_HMC_Staubach_Abq2023.f` carries pore pressure as a state variable and on
+the temperature DOF, and solves the fluid mass balance alongside the momentum
+equation, including cavitation. `vusdfld_parallel.f` and `vufield_parallel.f`
+map that pore pressure onto the contact surface as an effective friction field.
+Compile them through `call2023.f`. How to set the Abaqus keywords is in
+[`README.md`](README.md).
 
-It is the right starting point if you need the seepage part of suction caisson
-installation.
-Get it from the upstream repository, with the accompanying PDF, and read the
-papers it references first.
+These coupled files came from the same Staubach GPL-3.0 suite as the dry
+wrapper, via the Ottawa-sand constitutive collection. They are not a
+re-implementation. Read the papers cited in the VUMAT and VUFIELD headers
+before changing the hardcoded permeability, water table, or pile geometry.
 
 ## Modifications made here
 
 1. Files were renamed for clarity: upstream `call.f` → `call_implicit.f`,
    upstream `call_dry.f` → `call_explicit.f`.
-2. GPL-3.0 notices were added to `VUMAT_dry_Staubach.f`, `sdvini.f` and the two
-   call files, which are derivative works or are combined with GPL code and
-   carried no notice of their own.
+2. GPL-3.0 notices were added to `VUMAT_dry_Staubach.f`, `sdvini.f`,
+   `call_implicit.f`, `call_explicit.f`, `call2023.f` and `vuamp.f`, which are
+   derivative works or are combined with GPL code and carried no notice of
+   their own.
 3. Nothing in the numerical content of any file has been changed.
 
 ## Verifying it works
@@ -88,7 +95,7 @@ papers it references first.
 Before using this in a large model, run it on one element in Standard and
 Explicit.
 
-Check the `*Depvar` count against what the subroutine actually writes — the
-hypoplastic model with intergranular strain needs 14 in the implicit form, and
-the VUMAT wrapper may need more. Getting this wrong produces NaN or silent
+Check the `*Depvar` count against what the subroutine actually writes. The
+hypoplastic model with intergranular strain needs 14 in the implicit form. The
+coupled Explicit VUMAT needs 36. Getting this wrong produces NaN or silent
 corruption, not an error.

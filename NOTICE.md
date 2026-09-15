@@ -23,8 +23,8 @@ subdirectory is authoritative.
 | **Upstream** | <https://github.com/patrickstaubach/abaqus-explicit> |
 
 Hypoplasticity with intergranular strain, as UMAT (Abaqus/Standard) and VUMAT
-(Abaqus/Explicit). The upstream repository also contains a hydro-mechanically
-coupled VUMAT which is **not** vendored here.
+(Abaqus/Explicit), including the hydro-mechanically coupled Explicit VUMAT that
+carries pore pressure on the temperature DOF.
 
 **This is copyleft.** If you redistribute a modified version of these files, or a
 work that includes them, that distribution must also be GPL-3.0. Using them
@@ -37,10 +37,10 @@ legal determination about redistribution of binaries produced when Abaqus
 compiles and links the GPL-covered Fortran; review the GPL and the applicable
 Abaqus terms before distributing such binaries.
 
-Files modified here: `VUMAT_dry_Staubach.f`, `sdvini.f`, `call_implicit.f` and
-`call_explicit.f` had GPL-3.0 notices **added** (they are derivative works or are
-combined with GPL code and carried no notice). Two files were renamed. No
-numerical content was changed.
+Files modified here: `VUMAT_dry_Staubach.f`, `sdvini.f`, `call_implicit.f`,
+`call_explicit.f`, `call2023.f` and `vuamp.f` had GPL-3.0 notices **added**
+(they are derivative works or are combined with GPL code and carried no
+notice). Two files were renamed. No numerical content was changed.
 
 The constitutive model itself — hypoplasticity for granular materials with the
 intergranular strain extension — is the work of Kolymbas, Gudehus, von
