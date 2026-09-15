@@ -119,7 +119,7 @@ model.RigidBody(name='IndRigid', refPointRegion=rp_region,
 # stabilisation: that is fictitious viscous damping.
 model.StaticStep(
     name='Push', previous='Initial', nlgeom=ON, timePeriod=1.0,
-    initialInc=0.01, minInc=1.0e-8, maxInc=0.5)
+    initialInc=0.01, minInc=1.0e-8, maxInc=0.5, maxNumInc=500)
 model.TabularAmplitude(name='Ramp', timeSpan=STEP,
                        data=((0.0, 0.0), (1.0, 1.0)))
 model.HistoryOutputRequest(
