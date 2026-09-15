@@ -189,25 +189,28 @@ model.steps['Push'].AdaptiveMeshDomain(
 
 # --- write, check, maybe submit -------------------------------------------
 
-def _inject_diagnostics(inp_path, after_static=False):
-    """Insert *Diagnostics after the procedure card. CAE cannot write this."""
+def _inject_hourglass(inp_path):
+    """Standard ALE requires enhanced hourglass on C3D8R. CAE cannot write
+    *Section Controls. *Diagnostics, adaptive mesh= is Explicit-only."""
     lines = open(inp_path).readlines()
-    out, i = [], 0
-    while i < len(lines):
-        out.append(lines[i])
-        s = lines[i].strip().upper()
-        hit = s.startswith('*DYNAMIC, EXPLICIT') or (
-            after_static and s.startswith('*STATIC'))
-        if hit:
-            i += 1
-            if i < len(lines) and not lines[i].lstrip().startswith('*'):
-                out.append(lines[i])
-                i += 1
-            out.append('*Diagnostics, adaptive mesh=summary\n')
-            continue
-        i += 1
+    out, inserted = [], False
+    for line in lines:
+        out.append(line)
+        if (not inserted) and line.upper().startswith('*PREPRINT'):
+            out.append('*Section Controls, name=SoilSC, hourglass=ENHANCED\n')
+            inserted = True
+    text = ''.join(out)
+    old = None
+    for line in text.splitlines(True):
+        u = line.upper()
+        if u.startswith('*SOLID SECTION') and 'SOILMAT' in u and 'CONTROLS=' not in u:
+            old = line
+            break
+    if old is None:
+        raise RuntimeError('no *Solid Section for SoilMat to attach hourglass')
+    text = text.replace(old, old.rstrip('\r\n') + ', controls=SoilSC\n', 1)
     fh = open(inp_path, 'w')
-    fh.write(''.join(out))
+    fh.write(text)
     fh.close()
 
 job = mdb.Job(name=JOB_NAME, model='Model-1', type=ANALYSIS,
@@ -217,8 +220,7 @@ job.writeInput()
 inp = os.path.join(workdir, JOB_NAME + '.inp')
 print('wrote %s' % inp)
 
-# CAE cannot write *Diagnostics. Insert it after *Static.
-_inject_diagnostics(inp, after_static=True)
+_inject_hourglass(inp)
 
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')
