@@ -26,7 +26,7 @@ abaqus cae noGUI=examples/implicit.py
 | [`examples/explicit.py`](examples/explicit.py) | Abaqus/Explicit |
 | [`examples/explicit_ale.py`](examples/explicit_ale.py) | Explicit + ALE |
 | [`examples/explicit_cel.py`](examples/explicit_cel.py) | Explicit CEL |
-| [`examples/suction_caisson.py`](examples/suction_caisson.py) | jacked then suction. No seepage |
+| [`examples/suction_caisson.py`](examples/suction_caisson.py) | jacked then suction. No seepage. [Reading list](examples/suction_caisson.md) |
 
 Each script is complete. Open two and diff them.
 

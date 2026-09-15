@@ -11,6 +11,9 @@ choice of formulation.
                      adaptive mesh domain (default)
     FLD_METHOD=cel   quarter-symmetry Eulerian soil
 
+Papers for the next step (seepage, installation state, cyclic response)
+are listed in examples/suction_caisson.md.
+
 Geometry (quarter model, lab scale)
 -----------------------------------
 ::
