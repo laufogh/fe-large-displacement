@@ -28,7 +28,7 @@ import step
 
 # --- numbers you may want to change ---------------------------------------
 
-SEED = 0.025             # m, element size. Same on every formulation.
+SEED = 0.010             # m, element size. Same on every formulation.
 SOIL_LEN = 0.30          # m, block size in x
 SOIL_WID = SEED          # one element through the strip (plane strain)
 SOIL_DEP = 0.20          # m, block size in z
