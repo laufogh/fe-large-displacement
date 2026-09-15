@@ -2,10 +2,6 @@
 
 Abaqus models for large-displacement geotechnics.
 
-![Strip indenter load–displacement](media/indenter-load-displacement.png)
-
-Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
-
 ## Start here
 
 1. [`documentation/software.pdf`](documentation/software.pdf) — how to read the software.
@@ -35,6 +31,10 @@ abaqus cae noGUI=examples/implicit.py
 Each script is complete. Open two and diff them.
 
 User subroutines live in [`constitutive/`](constitutive/). Using the Clausen Mohr-Coulomb model requires citing three papers; see that folder.
+
+![Strip indenter load–displacement](media/indenter-load-displacement.png)
+
+Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
 
 ## Licence
 
