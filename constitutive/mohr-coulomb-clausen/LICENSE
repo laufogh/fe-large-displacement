@@ -33,11 +33,15 @@ https://doi.org/10.1108/EC-01-2014-0008
 Copyright in the original implementation is not transferred by this licence.
 The repository-root MIT licence does not replace or override these terms.
 
-The repository-authored VUMAT adapter, build glue, verification drivers and
+The repository-authored dry VUMAT adapter, build glue, verification drivers and
 documentation in this directory are available under the repository-root MIT
 licence. When they are used or redistributed with the original Clausen source,
 the conditions above continue to apply to the combined source bundle and to
 use of the model.
+
+VUMAT_HMC_MohrCoulomb.f is derived from Patrick Staubach's GPLv3 coupled
+VUMAT and is distributed under GPL-3.0. call_explicit_saturated.f includes
+that file. See the GPL header in those two files.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

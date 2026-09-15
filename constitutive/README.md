@@ -7,7 +7,7 @@
 | Directory | Model | Licence | Status |
 |---|---|---|---|
 | [`hypoplasticity-staubach/`](hypoplasticity-staubach/) | Hypoplasticity with intergranular strain (Niemunis–Herle), UMAT + dry VUMAT + coupled VUMAT | **GPL-3.0** | included |
-| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb with exact stress return, UMAT + VUMAT | originals: custom permission and three citations; adapter/tests: MIT | included; Abaqus verification pending |
+| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb with exact stress return, UMAT + dry VUMAT + coupled VUMAT | originals: custom permission and three citations; dry adapter: MIT; HMC adapter: **GPL-3.0** | included |
 
 ## Which one do you need?
 

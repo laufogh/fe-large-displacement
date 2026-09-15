@@ -46,13 +46,33 @@ else is pulled in by `include`.
 | File | What it is |
 |---|---|
 | `call_implicit.f` | Abaqus/Standard UMAT |
-| `call_explicit.f` | Abaqus/Explicit VUMAT. Includes the UMAT and the adapter. |
+| `call_explicit.f` | Explicit, dry. Total stress = effective stress. |
+| `call_explicit_saturated.f` | Explicit, saturated. Pore pressure on the temperature DOF. |
 
 A sample material property file is provided as `constants.txt`; it is
-illustrative, not a soil calibration. Set `FLD_UMAT_NSDV=1` and
-`FLD_SDV_INIT=0` when you use the model; the zero explicitly initialises the
-diagnostic SDV without requesting an `SDVINI` routine that is not in this
-bundle.
+illustrative, not a soil calibration.
+
+Dry Explicit: `*Depvar` 1. Set `FLD_UMAT_NSDV=1` and `FLD_SDV_INIT=0` when you
+use the model; the zero explicitly initialises the diagnostic SDV without
+requesting an `SDVINI` routine that is not in this bundle.
+
+## Saturated (pore pressure on the temperature DOF)
+
+`user=call_explicit_saturated.f`. Same five material constants. The step must
+be `*Dynamic, temperature-displacement, explicit`. `NT11` is pore pressure, not
+temperature. A saturated job also needs:
+
+- `*Depvar` 36
+- `*Conductivity` and `*Specific heat`
+- `*Inelastic heat fraction` 1.0
+
+Permeability, viscosity, water table and cavitation are hardcoded at the top of
+`VUMAT_HMC_MohrCoulomb.f`. Edit those. They are not in `constants.txt`. CEL
+effective-contact field routines live with the hypoplasticity sources
+(`vusdfld_parallel.f`, `vufield_parallel.f`); they are not duplicated here.
+
+The HMC adapter is GPLv3 (derived from Staubach). The original UMAT is still
+Clausen permission plus the three citations.
 
 ## Verification
 

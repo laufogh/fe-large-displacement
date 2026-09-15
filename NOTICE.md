@@ -57,9 +57,14 @@ Non-associated Mohr-Coulomb UMAT with exact stress return, by
 
 The source files are included with permission. Copyright in the original UMATs
 remains with Johan Clausen, and the repository-root MIT licence does not apply
-to those original files. The repository-authored adapter, verification drivers,
-and documentation are MIT-licensed, subject to the original-source conditions
-whenever the model is used or the source bundle is redistributed.
+to those original files. The repository-authored dry adapter, verification drivers, and documentation
+are MIT-licensed, subject to the original-source conditions whenever the model
+is used or the source bundle is redistributed.
+
+`VUMAT_HMC_MohrCoulomb.f` (and `call_explicit_saturated.f`, which includes it)
+is derived from Staubach's hydro-mechanically coupled VUMAT and is **GPL-3.0**.
+Compiling that file together with the Clausen UMAT produces a GPL-covered
+combined object. The original UMAT terms still apply to `MohrCoulombAbaqus.for`.
 
 Use and redistribution require retaining the directory permission notice and
 crediting Johan Clausen. Publications, technical reports, presentations, and
@@ -74,8 +79,10 @@ other distributed analyses that use the model must cite:
 
 BibTeX is in `constitutive/mohr-coulomb-clausen/references.bib`.
 
-The VUMAT adapter has standalone gfortran equivalence tests. It has not yet been
-compiled and run through Abaqus on the target release; see `PORT-REPORT.md`.
+The dry VUMAT adapter has standalone gfortran equivalence tests. It has not yet
+been compiled and run through Abaqus on the target release; see `PORT-REPORT.md`.
+The coupled adapter uses the same temperature-DOF contract as
+`constitutive/hypoplasticity-staubach/`.
 
 ---
 
