@@ -51,7 +51,7 @@ as well as the implementation.
 
 ## constitutive/mohr-coulomb-clausen/ — MIT, citation required
 
-Non-associated Mohr-Coulomb and Tresca UMATs with exact stress return, by
+Non-associated Mohr-Coulomb UMAT with exact stress return, by
 **Johan Clausen** (Aalborg University).
 
 The source files are included with permission. Copyright in the original UMATs

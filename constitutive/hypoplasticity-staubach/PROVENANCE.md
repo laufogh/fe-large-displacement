@@ -85,15 +85,8 @@ papers it references first.
 
 ## Verifying it works
 
-Before using this in a large model, run it on one element:
-
-```bash
-set FLD_UMAT_IMPLICIT=<repo>\constitutive\hypoplasticity-staubach\call_implicit.f
-set FLD_UMAT_EXPLICIT=<repo>\constitutive\hypoplasticity-staubach\call_explicit.f
-set FLD_UMAT_CONSTANTS=<repo>\constitutive\hypoplasticity-staubach\constants.txt
-set FLD_UMAT_NSDV=14
-abaqus cae noGUI=constitutive/single_element/model.py
-```
+Before using this in a large model, run it on one element in Standard and
+Explicit.
 
 Check the `*Depvar` count against what the subroutine actually writes — the
 hypoplastic model with intergranular strain needs 14 in the implicit form, and

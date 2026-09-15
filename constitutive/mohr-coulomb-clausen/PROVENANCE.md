@@ -1,10 +1,10 @@
-# Provenance — Mohr-Coulomb and Tresca (Clausen)
+# Provenance — Mohr-Coulomb (Clausen)
 
 ## Status and permission record
 
 The source and port are included with permission. Copyright in the original
-Mohr-Coulomb and Tresca implementations remains with Johan Clausen; inclusion
-here does not place them under the repository-root MIT licence.
+Mohr-Coulomb implementation remains with Johan Clausen; inclusion here does
+not place it under the repository-root MIT licence.
 
 | | |
 |---|---|
@@ -18,7 +18,6 @@ Included files:
 | File | What it is |
 |---|---|
 | `MohrCoulombAbaqus.for` | UMAT for Abaqus/Standard. Linear elastic – perfectly plastic, **non-associated** Mohr-Coulomb with exact stress return and explicit handling of the edges and the apex of the yield surface. |
-| `TrescaAbaqus.for` | The same treatment for Tresca. |
 | `VUMAT_MohrCoulomb.f` | VUMAT adapter for Abaqus/Explicit. |
 | `call_mc.f` | Top-level include file. |
 | `verification/` | Standalone gfortran equivalence checks. |

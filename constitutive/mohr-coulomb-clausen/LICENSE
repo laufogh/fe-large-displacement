@@ -1,9 +1,9 @@
-Clausen Mohr-Coulomb and Tresca source licence
+Clausen Mohr-Coulomb source licence
 
 Copyright (c) Johan Clausen
 
-The original Mohr-Coulomb and Tresca implementations in
-MohrCoulombAbaqus.for and TrescaAbaqus.for are redistributed with permission.
+The original Mohr-Coulomb implementation in MohrCoulombAbaqus.for is
+redistributed with permission.
 Permission is granted to recipients of this repository to use and redistribute
 those files, in source or compiled form, provided that:
 

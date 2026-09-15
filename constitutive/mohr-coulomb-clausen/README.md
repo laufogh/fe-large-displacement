@@ -1,8 +1,8 @@
-# Clausen Mohr-Coulomb and Tresca
+# Clausen Mohr-Coulomb
 
-Johan Clausen's non-associated Mohr-Coulomb and Tresca UMATs use an exact
-principal-stress return with explicit handling of yield-surface edges and the
-apex. `VUMAT_MohrCoulomb.f` adapts the Mohr-Coulomb UMAT to Abaqus/Explicit.
+Johan Clausen's non-associated Mohr-Coulomb UMAT uses an exact principal-stress
+return with explicit handling of yield-surface edges and the apex.
+`VUMAT_MohrCoulomb.f` adapts the UMAT to Abaqus/Explicit.
 
 ## Licence and citation
 
@@ -44,7 +44,7 @@ Use `MohrCoulombAbaqus.for` as the user-subroutine source for Standard and
 `call_mc.f` for Explicit. The latter includes the original UMAT and the VUMAT
 adapter. A sample material property file is provided as `constants.txt`; it is
 illustrative, not a soil calibration. Set `FLD_UMAT_NSDV=1` and
-`FLD_SDV_INIT=0` in `constitutive/single_element` or `examples/suction_caisson`; the zero explicitly initialises the
+`FLD_SDV_INIT=0` when you use the model; the zero explicitly initialises the
 diagnostic SDV without requesting an `SDVINI` routine that is not in this
 bundle.
 

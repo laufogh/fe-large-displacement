@@ -7,7 +7,7 @@
 | Directory | Model | Licence | Status |
 |---|---|---|---|
 | [`hypoplasticity-staubach/`](hypoplasticity-staubach/) | Hypoplasticity with intergranular strain (Niemunis–Herle), UMAT + VUMAT | **GPL-3.0** | included |
-| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb and Tresca with exact stress return, UMAT + VUMAT | originals: custom permission and three citations; adapter/tests: MIT | included; Abaqus verification pending |
+| [`mohr-coulomb-clausen/`](mohr-coulomb-clausen/) | Non-associated Mohr-Coulomb with exact stress return, UMAT + VUMAT | originals: custom permission and three citations; adapter/tests: MIT | included; Abaqus verification pending |
 
 ## Which one do you need?
 
@@ -33,15 +33,7 @@ Then, roughly in order of effort:
 
 ## Before you put any of them in a large model
 
-Run `constitutive/single_element`. It pushes one element through
-oedometric compression, drained triaxial compression and strain cycles, in both
-Abaqus/Standard and Abaqus/Explicit, and compares the two. For a rate-independent
-model they must agree; when they do not, the difference tells you which one is
-wrong.
-
-Debugging a UMAT inside a 50 000-element penetration analysis costs weeks. On one
-element it costs seconds.
-
+Debugging a UMAT inside a 50 000-element penetration analysis costs weeks.
 Getting `*Depvar` wrong, or leaving state variables uninitialised, produces
 NaN. Abaqus/Explicit integrates NaN to the end of the step and writes a
 complete ODB. Check the ODB is finite before trusting it.
@@ -57,8 +49,8 @@ constitutive/<name>/
     LICENSE                 if not the repository default
 ```
 
-Then run `constitutive/single_element` against it and commit the resulting stress paths as the
-reference. That is what makes the next port checkable — and the next port is
+Run it on one element in Standard and Explicit before a large job. Keep the
+stress paths. That is what makes the next port checkable — and the next port is
 usually yours, six months later, when you cannot remember what "right" looked
 like.
 
