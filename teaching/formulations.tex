@@ -14,283 +14,154 @@
 \thispagestyle{fancy}
 
 \noindent
-Each section lists what you must \emph{add or change} relative to the previous
-rung. Geometry, rollers, the rigid indenter and the soil block stay put until
-CEL. Shared builder: \coderef{examples/common/indenter_model.py}{99}.
+Each folder under \code{examples/indenter/} is one complete script. Open two
+of them and diff. This note lists the extra lines at each rung.
 
 \section{Implicit}
 
-The Standard baseline. \code{examples/indenter/implicit}.
+\code{examples/indenter/implicit/model.py}
 
 \subsubsection*{Geometrically nonlinear static step}
 
-Without \texttt{nlgeom} there is no large displacement. Automatic stabilisation
-is fictitious viscous damping. It is on because the analysis otherwise stops
-as soon as the soil fails. Check \texttt{ALLSD} against \texttt{ALLIE}.
+Automatic stabilisation is fictitious viscous damping. Check \texttt{ALLSD}.
 
-\lstinputlisting[firstline=53,lastline=63,firstnumber=53]{\reporoot/lib/fldlib/steps.py}
+\lstinputlisting[firstline=127,lastline=136,firstnumber=127]{\reporoot/examples/indenter/implicit/model.py}
 
 \subsubsection*{Displacement control}
 
-The indenter is driven by a prescribed displacement on the rigid-body
-reference point, ramped with a tabular amplitude over a unit time period.
-
-\lstinputlisting[firstline=199,lastline=203,firstnumber=199]{\reporoot/examples/common/indenter_model.py}
-
-\lstinputlisting[firstline=228,lastline=232,firstnumber=228]{\reporoot/examples/common/indenter_model.py}
+\lstinputlisting[firstline=165,lastline=169,firstnumber=165]{\reporoot/examples/indenter/implicit/model.py}
 
 \subsubsection*{Standard element library}
 
-Same \texttt{C3D8R} topology as Explicit. The library flag must be
-\texttt{STANDARD}.
-
-\lstinputlisting[firstline=150,lastline=153,firstnumber=150]{\reporoot/examples/common/indenter_model.py}
+\lstinputlisting[firstline=103,lastline=104,firstnumber=103]{\reporoot/examples/indenter/implicit/model.py}
 
 \subsubsection*{Standard general contact}
 
-\code{ContactStd}, not the Explicit interaction.
-
-\lstinputlisting[firstline=108,lastline=114,firstnumber=108]{\reporoot/lib/fldlib/contact.py}
-
-\subsubsection*{Standard job}
-
-No \texttt{DOUBLE\_PLUS\_PACK}. Thread parallelisation, not Explicit domains.
-
-\lstinputlisting[firstline=84,lastline=93,firstnumber=84]{\reporoot/lib/fldlib/jobs.py}
-
-\subsubsection*{Optional geostatic}
-
-Self-weight belongs in a \texttt{*Geostatic} step, then import into later
-steps. The teaching indenters skip this. A quantitative model must not.
-
-\lstinputlisting[firstline=100,lastline=101,firstnumber=100]{\reporoot/lib/fldlib/steps.py}
+\lstinputlisting[firstline=177,lastline=180,firstnumber=177]{\reporoot/examples/indenter/implicit/model.py}
 
 \section{Implicit ALE}
 
-On top of implicit. \code{examples/indenter/implicit_ale}.
+On top of implicit. \code{examples/indenter/implicit_ale/model.py}
 
-\subsubsection*{Reduced-integration first-order solids}
+\subsubsection*{Restricted adaptive domain}
 
-ALE domains may contain only \texttt{C3D8R} (or \texttt{CAX4R},
-\texttt{CPE4R}). Other types in the set are silently nonadaptive. The implicit
-model already uses \texttt{C3D8R}. Do not switch to fully integrated or
-second-order elements.
+ALE only accepts first-order reduced-integration solids (\texttt{C3D8R}).
+An empty set is silent. Standard has no initial mesh sweeps.
 
-\subsubsection*{Adaptive mesh controls and a restricted set}
-
-A box written in absolute coordinates is the usual way to get an empty, inert
-domain. Print what the set actually contains.
-
-\lstinputlisting[firstline=51,lastline=58,firstnumber=51]{\reporoot/examples/indenter/implicit_ale/model.py}
-
-\subsubsection*{No initial mesh sweeps}
-
-Abaqus/Standard has none. Pass \texttt{None} so the keyword is omitted.
-
-\lstinputlisting[firstline=242,lastline=250,firstnumber=242]{\reporoot/lib/fldlib/ale.py}
+\lstinputlisting[firstline=175,lastline=192,firstnumber=175]{\reporoot/examples/indenter/implicit_ale/model.py}
 
 \subsubsection*{Diagnostics after \texttt{*Static}}
 
-CAE cannot write \texttt{*Diagnostics}. Inject it or you cannot prove the
-domain swept. Standard may still omit the Explicit-style \texttt{.msg} block.
+CAE cannot write \texttt{*Diagnostics}. Without it you cannot prove ALE ran.
 
-\lstinputlisting[firstline=63,lastline=64,firstnumber=63]{\reporoot/examples/indenter/implicit_ale/model.py}
-
-Standard ALE is Lagrangian-only, one smoothing algorithm, intended for wear
-and acoustics. Do not expect skirt penetration from it.
+\lstinputlisting[firstline=204,lastline=205,firstnumber=204]{\reporoot/examples/indenter/implicit_ale/model.py}
 
 \section{Explicit}
 
-On top of implicit, replacing the solver. \code{examples/indenter/explicit}.
-This is the largest jump.
+On top of implicit, replacing the solver. \code{examples/indenter/explicit/model.py}
 
 \subsubsection*{Mass (\texttt{*Density})}
 
-Explicit cannot run without density. The stable increment is
-$L_{\min}/c_d$ and $c_d$ depends on $\rho$. A Standard model that never had
-\texttt{*Density} will not data-check. This repository always writes it.
+Required. The stable increment is $L_{\min}/c_d$.
 
-\lstinputlisting[firstline=69,lastline=72,firstnumber=69]{\reporoot/lib/fldlib/materials.py}
+\lstinputlisting[firstline=85,lastline=87,firstnumber=85]{\reporoot/examples/indenter/explicit/model.py}
 
 \subsubsection*{Explicit element library}
 
-Same \texttt{C3D8R} code, \texttt{EXPLICIT} library. Mixing libraries in one
-part fails at data check.
-
-\lstinputlisting[firstline=150,lastline=153,firstnumber=150]{\reporoot/examples/common/indenter_model.py}
+\lstinputlisting[firstline=101,lastline=102,firstnumber=101]{\reporoot/examples/indenter/explicit/model.py}
 
 \subsubsection*{Dynamic explicit step, not static}
 
-Drop \texttt{*Static} and automatic stabilisation. Bulk viscosity is on by
-default on \texttt{*Dynamic, Explicit} (watch \texttt{ALLVD}). Do not add
-Rayleigh or material damping to hide kinetic energy. Slow the rate or scale
-less mass instead. See \code{docs/01-explicit-quasi-static.md}.
+Drop automatic stabilisation. Bulk viscosity is on by default (\texttt{ALLVD}).
+Do not add extra damping to hide kinetic energy.
 
-\lstinputlisting[firstline=79,lastline=84,firstnumber=79]{\reporoot/lib/fldlib/steps.py}
-
-\subsubsection*{Time period from rate, not a unit interval}
-
-The step length is penetration depth divided by the prescribed velocity. That
-velocity is scaled far above reality. Print the increment count before you
-submit.
-
-\lstinputlisting[firstline=193,lastline=197,firstnumber=193]{\reporoot/examples/common/indenter_model.py}
-
-\subsubsection*{Smooth-step amplitude}
-
-A step change of velocity puts a stress wave through the model on increment 1.
-\texttt{SMOOTH STEP} ramps over the first few percent of the step.
-
-\lstinputlisting[firstline=152,lastline=155,firstnumber=152]{\reporoot/lib/fldlib/steps.py}
-
-\subsubsection*{Velocity control, not displacement}
-
-A constant rate makes the resistance curve interpretable. Sign is negative
-because penetration is $-z$.
-
-\lstinputlisting[firstline=222,lastline=226,firstnumber=222]{\reporoot/examples/common/indenter_model.py}
-
-\subsubsection*{Explicit general contact}
-
-\code{ContactExp}. Penalty friction. Mandatory later for CEL, and the right
-default here because the contact surface changes as the soil folds.
-
-\lstinputlisting[firstline=81,lastline=86,firstnumber=81]{\reporoot/lib/fldlib/contact.py}
-
-\subsubsection*{Double precision job and domain parallel}
-
-Single precision corrupts a long soil run. Loop-level parallelisation is not
-available on Windows. \texttt{numDomains} must be a multiple of
-\texttt{numCpus}.
-
-\lstinputlisting[firstline=63,lastline=70,firstnumber=63]{\reporoot/lib/fldlib/jobs.py}
+\lstinputlisting[firstline=125,lastline=133,firstnumber=125]{\reporoot/examples/indenter/explicit/model.py}
 
 \subsubsection*{Energy history}
 
-Request it. Grade the peak \texttt{ALLKE}/\texttt{ALLIE}, not the final value.
-Below about 5~\% is acceptable, below 1~\% is quotable.
+Peak \texttt{ALLKE}/\texttt{ALLIE} below about 5~\% is acceptable, below 1~\%
+is quotable.
 
-\lstinputlisting[firstline=172,lastline=176,firstnumber=172]{\reporoot/lib/fldlib/steps.py}
+\lstinputlisting[firstline=134,lastline=138,firstnumber=134]{\reporoot/examples/indenter/explicit/model.py}
+
+\subsubsection*{Velocity control, not displacement}
+
+\lstinputlisting[firstline=163,lastline=167,firstnumber=163]{\reporoot/examples/indenter/explicit/model.py}
+
+\subsubsection*{Explicit general contact}
+
+\lstinputlisting[firstline=175,lastline=178,firstnumber=175]{\reporoot/examples/indenter/explicit/model.py}
+
+\subsubsection*{Double precision job}
+
+\lstinputlisting[firstline=186,lastline=191,firstnumber=186]{\reporoot/examples/indenter/explicit/model.py}
 
 \subsubsection*{Optional mass scaling}
 
-Semi-automatic, target $\Delta t$, throughout the step. It scales the worst
-elements, which in a penetration run are next to the structure. Check added
-mass in the \texttt{.sta} and re-check \texttt{ALLKE}.
-
-\lstinputlisting[firstline=128,lastline=135,firstnumber=128]{\reporoot/lib/fldlib/steps.py}
+Commented at the bottom of the Explicit script. Semi-automatic, target
+$\Delta t$. Then re-check \texttt{ALLKE}.
 
 \subsubsection*{Optional section controls}
 
-Distortion control or enhanced hourglass, not both. CAE in 2021 has no API.
-Inject after \texttt{*Preprint} and attach to the soil \texttt{*Solid Section}.
-
-\lstinputlisting[firstline=70,lastline=73,firstnumber=70]{\reporoot/examples/indenter/explicit/model.py}
-
-\subsubsection*{UMAT becomes VUMAT}
-
-If the soil is a user material, the Explicit job needs a VUMAT (or a wrapper),
-the matching \texttt{*Depvar} count, and initialised state. Verify on
-\code{constitutive/single_element} first.
+Also commented. Distortion control or enhanced hourglass, not both.
+CAE cannot write \texttt{*Section Controls}.
 
 \section{Explicit ALE}
 
-On top of explicit. \code{examples/indenter/explicit_ale}. Keep everything
-from the previous section.
+On top of explicit. \code{examples/indenter/explicit_ale/model.py}
 
-\subsubsection*{Adaptive mesh controls}
+\subsubsection*{Adaptive domain with initial sweeps}
 
-\lstinputlisting[firstline=65,lastline=65,firstnumber=65]{\reporoot/examples/indenter/explicit_ale/model.py}
+Same box as implicit ALE. Explicit adds \texttt{initialMeshSweeps=5}.
 
-\subsubsection*{Restricted element set}
+\lstinputlisting[firstline=175,lastline=192,firstnumber=175]{\reporoot/examples/indenter/explicit_ale/model.py}
 
-Do not make the whole part adaptive. A box around the indenter is the
-production configuration. An empty set is an inert domain with no warning.
+\subsubsection*{Diagnostics after \texttt{*Dynamic, Explicit}}
 
-\lstinputlisting[firstline=66,lastline=74,firstnumber=66]{\reporoot/examples/indenter/explicit_ale/model.py}
+Then read the \texttt{.msg}. Zero percent of nodes moved means the domain
+was defined and did nothing.
 
-\subsubsection*{Initial mesh sweeps}
+\lstinputlisting[firstline=206,lastline=207,firstnumber=206]{\reporoot/examples/indenter/explicit_ale/model.py}
 
-Explicit has them. Default in CAE is 5 at the start of the step, then
-\texttt{frequency=10} and \texttt{mesh sweeps=1}. The keyword reference that
-says default sweeps is 5 is wrong. See \code{docs/02-ale-adaptive-meshing.md}.
-
-\subsubsection*{Diagnostics, then prove it ran}
-
-Inject \texttt{*Diagnostics, adaptive mesh=summary} after
-\texttt{*Dynamic, Explicit}. Then read the \texttt{.msg}. Zero percent of nodes
-moved means the domain was defined and did nothing.
-
-\lstinputlisting[firstline=79,lastline=80,firstnumber=79]{\reporoot/examples/indenter/explicit_ale/model.py}
-
-\subsubsection*{Parallel domains}
-
-Nodes shared between Explicit domains are nonadaptive. For a study of ALE,
-run one CPU. For production, several well-separated regions. Adjacent regions
-that share a face are treated as one. See
-\code{docs/03-ale-multi-region-parallel.md}.
-
-\subsubsection*{Still not a remesh}
-
-Topology is fixed. When material must flow around a tip and close behind it,
-ALE stops helping. That is CEL.
+Run one CPU for a study of ALE. Nodes shared between parallel domains are
+nonadaptive.
 
 \section{Explicit CEL}
 
-On top of explicit, replacing the Lagrangian soil. \code{examples/indenter/explicit_cel}.
-Keep density, the Explicit step, smooth-step velocity drive, Explicit contact,
-double precision and energy output. Drop ALE.
+On top of explicit, replacing the Lagrangian soil.
+\code{examples/indenter/explicit_cel/model.py}
 
 \subsubsection*{Eulerian part with void above the soil}
 
-The mesh is a fixed box of space. Heave needs empty elements. No void means
-resistance is silently too high.
+Do not set the void to zero. Heave needs empty elements.
 
-\lstinputlisting[firstline=64,lastline=73,firstnumber=64]{\reporoot/examples/indenter/explicit_cel/model.py}
+\lstinputlisting[firstline=70,lastline=83,firstnumber=70]{\reporoot/examples/indenter/explicit_cel/model.py}
 
-\subsubsection*{Eulerian elements}
+\subsubsection*{Eulerian section and \texttt{EC3D8R}}
 
-\texttt{EC3D8R}, Explicit library, structured hex. A swept or free mesh is
-rejected.
-
-\lstinputlisting[firstline=94,lastline=99,firstnumber=94]{\reporoot/lib/fldlib/cel.py}
-
-\subsubsection*{Eulerian section, not a solid section}
-
-The soil section is \texttt{*Eulerian Section}. The indenter stays a
-Lagrangian solid.
-
-\lstinputlisting[firstline=55,lastline=57,firstnumber=55]{\reporoot/lib/fldlib/cel.py}
+\lstinputlisting[firstline=99,lastline=111,firstnumber=99]{\reporoot/examples/indenter/explicit_cel/model.py}
 
 \subsubsection*{Initial volume fraction}
 
-Cells below $z=0$ start full. Everything else starts empty. This is
+Cells below $z=0$ start full. This is
 \texttt{*Initial Conditions, type=VOLUME FRACTION}.
 
-\lstinputlisting[firstline=126,lastline=132,firstnumber=126]{\reporoot/examples/indenter/explicit_cel/model.py}
+\lstinputlisting[firstline=131,lastline=141,firstnumber=131]{\reporoot/examples/indenter/explicit_cel/model.py}
 
-\subsubsection*{Walls, not rollers, and a free top}
+\subsubsection*{Walls, free top}
 
-Zero normal displacement on the four sides and the base so material cannot
-leave the box. The top is open. Closing it is another way to lose heave.
+Zero normal motion on the sides and base. The top is open.
 
-\lstinputlisting[firstline=169,lastline=176,firstnumber=169]{\reporoot/examples/indenter/explicit_cel/model.py}
-
-\subsubsection*{No geostatic}
-
-\texttt{*Geostatic} has no Eulerian implementation. Initialise stress directly
-or settle dynamically (slow, and it rings).
+\lstinputlisting[firstline=173,lastline=176,firstnumber=173]{\reporoot/examples/indenter/explicit_cel/model.py}
 
 \subsubsection*{EVF on the field output}
 
-Without Eulerian volume fraction you cannot see where the material is.
+\lstinputlisting[firstline=169,lastline=171,firstnumber=169]{\reporoot/examples/indenter/explicit_cel/model.py}
 
-\lstinputlisting[firstline=150,lastline=153,firstnumber=150]{\reporoot/examples/indenter/explicit_cel/model.py}
+\subsubsection*{No geostatic, no ALE}
 
-\subsubsection*{General contact is mandatory}
-
-The Eulerian--Lagrangian interaction exists only through general contact.
-There is no ALE block. The free surface is one element thick.
+\texttt{*Geostatic} has no Eulerian implementation. General contact is
+mandatory. There is no \texttt{*Adaptive Mesh} block.
 
 \section{What to check in the deck}
 
@@ -300,20 +171,17 @@ There is no ALE block. The free surface is one element thick.
 \toprule
 Rung & The deck must show \\
 \midrule
-Implicit & \texttt{*Static}, \texttt{nlgeom=YES}, displacement BC,
-  no \texttt{*Adaptive Mesh} \\
-Implicit ALE & plus \texttt{*Adaptive Mesh} on a named elset,
-  \texttt{*Diagnostics} \\
+Implicit & \texttt{*Static}, \texttt{nlgeom=YES}, displacement BC \\
+Implicit ALE & plus \texttt{*Adaptive Mesh} on \texttt{ALE\_Box} \\
 Explicit & \texttt{*Density}, \texttt{*Dynamic, Explicit},
   \texttt{type=VELOCITY}, \texttt{ALLKE} \\
-Explicit ALE & plus \texttt{*Adaptive Mesh}, \texttt{*Diagnostics},
-  nonzero nodes moved in the \texttt{.msg} \\
+Explicit ALE & plus \texttt{*Adaptive Mesh}, \texttt{*Diagnostics} \\
 Explicit CEL & \texttt{*Eulerian Section}, \texttt{EC3D8R},
   volume fraction, void, no ALE \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Write the input. Read it. Assert. Then submit.
+Write the input. Read it. Then submit.
 
 \end{document}

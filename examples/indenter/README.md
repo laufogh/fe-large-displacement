@@ -1,9 +1,7 @@
 # Indenter models
 
-One physical problem, five formulations. A rigid strip indenter is pushed into
-a soil block. Geometry, mesh, material and contact stay the same except where
-the formulation itself requires a change (Eulerian elements and void space for
-CEL). Differences in the result are then caused by the formulation.
+One strip pushed into a soil block. Five complete scripts. Open two and diff
+them. That is how you see what each formulation adds.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run
@@ -11,14 +9,12 @@ set FLD_SUBMIT=0
 abaqus cae noGUI=examples/indenter/implicit/model.py
 ```
 
-| Folder | Solver | What changes |
-|---|---|---|
-| [`implicit/`](implicit/) | Abaqus/Standard `*Static` | nothing. It stops on convergence. |
-| [`implicit_ale/`](implicit_ale/) | Standard + ALE | an adaptive mesh domain on the static step. Standard ALE is limited. |
-| [`explicit/`](explicit/) | Abaqus/Explicit `*Dynamic, Explicit` | no convergence to lose. Distorts instead. Cases B and C are the energy test and distortion control. |
-| [`explicit_ale/`](explicit_ale/) | Explicit + ALE | nodes move relative to material. Topology is fixed. |
-| [`explicit_cel/`](explicit_cel/) | Explicit CEL | material flows through a fixed mesh. |
+| Folder | What it is |
+|---|---|
+| [`implicit/`](implicit/) | Abaqus/Standard `*Static`. Stops on convergence. |
+| [`implicit_ale/`](implicit_ale/) | the same, plus ALE |
+| [`explicit/`](explicit/) | Abaqus/Explicit. Distorts instead. |
+| [`explicit_ale/`](explicit_ale/) | Explicit plus ALE |
+| [`explicit_cel/`](explicit_cel/) | Explicit CEL |
 
-Shared builder: [`examples/common/indenter_model.py`](../common/indenter_model.py).
-What to change in the scripts is written in [`teaching/formulations.pdf`](../../teaching/formulations.pdf).
-Measured ALE, section-control and CEL findings stay in [`docs/`](../../docs/).
+The notes that go with the diffs are in [`teaching/formulations.pdf`](../../teaching/formulations.pdf).

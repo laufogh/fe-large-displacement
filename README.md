@@ -17,7 +17,6 @@ abaqus cae noGUI=examples/indenter/implicit/model.py
 
 `FLD_WORKDIR` must have no spaces if you compile a user subroutine.
 `FLD_SUBMIT=0` writes and checks the deck without solving. Omit it to submit.
-`FLD_CASES` selects a subset, for example `A,C`.
 
 ## Models
 
@@ -30,7 +29,7 @@ abaqus cae noGUI=examples/indenter/implicit/model.py
 | [`examples/indenter/explicit_cel`](examples/indenter/explicit_cel/) | Explicit CEL |
 | [`examples/suction_caisson`](examples/suction_caisson/) | jacked then suction. No seepage |
 
-The five indenter models share one mesh, material and contact. Further notes
+Each indenter script is complete. Open two and diff them. Further notes
 are in [`docs/`](docs/). A single-element UMAT/VUMAT check is
 [`constitutive/single_element/`](constitutive/single_element/).
 

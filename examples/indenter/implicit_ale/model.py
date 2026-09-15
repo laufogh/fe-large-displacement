@@ -1,11 +1,10 @@
-"""Implicit ALE. The same Standard model, with an adaptive mesh domain.
+"""Implicit ALE. Same Standard model as implicit/, plus an adaptive mesh.
 
     abaqus cae noGUI=examples/indenter/implicit_ale/model.py
 
-Abaqus/Standard ALE is the weaker tool: Lagrangian domains only, one smoothing
-algorithm, no initial mesh sweeps. It is here so the code path is visible.
-Expect it to fail in much the same place as the implicit Lagrangian run.
-Production penetration work uses Explicit ALE, then CEL.
+Abaqus/Standard ALE is limited. Expect it to fail in much the same place
+as the implicit Lagrangian run. This file is complete. Diff it against
+implicit/model.py to see the extra lines.
 """
 
 from __future__ import print_function
@@ -16,101 +15,207 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_HERE)))
 sys.path.insert(0, os.path.join(_ROOT, 'lib'))
-sys.path.insert(0, os.path.join(_ROOT, 'examples'))
 
-from abaqusConstants import UNIFORM
-from fldlib import config, report, jobs, ale, inpedit
-from common import indenter_model, runner
+from abaqus import mdb
+from abaqusConstants import (
+    THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX, STRUCTURED, STANDARD,
+    MIDDLE_SURFACE, FROM_SECTION, UNIFORM, CARTESIAN, STEP, ANALYSIS,
+    PERCENTAGE, DEFAULT, DISSIPATED_ENERGY_FRACTION, HARD, PENALTY,
+    ISOTROPIC, FRACTION, GLOBAL, SELF)
+import mesh
+import regionToolset
 
-
-STUDY = 'indenter_implicit_ale'
-CASES = ['A']
-CASE_DOC = {'A': 'implicit Static + restricted ALE box'}
-
-
-def make_params():
-    P = config.Params(STUDY)
-    indenter_model.declare(P)
-    P.add('ale_box_x_mult', 3.0, '-', 'box half-width / indenter half-width')
-    P.add('ale_box_z_mult', 1.3, '-', 'box depth / target penetration depth')
-    P.add('ale_frequency', 10, '-', 'sweep every N increments')
-    P.add('ale_sweeps', 1, '-', 'mesh sweeps per adaptive increment')
-    return P.resolve()
+from fldlib.report import InpCheck
+from fldlib.inpedit import inject_diagnostics
 
 
-def run_case(case, workdir, P):
-    job_name = 'impale_%s' % case
-    print('  %s: %s' % (case, CASE_DOC[case]))
+# --- numbers you may want to change ---------------------------------------
 
-    handles = indenter_model.build(P, model_name='ImpAle_' + case,
-                                   solver='implicit')
-    model = handles['model']
-    asm = handles['assembly']
-    n_soil = handles['n_soil_elements']
+SOIL_LEN = 0.30
+SOIL_WID = 0.20
+SOIL_DEP = 0.20
+SEED = 0.010
 
-    ale.make_controls(model, 'ALE_BC', smoothing=UNIFORM)
-    box = indenter_model.ale_box(P)
-    n_adaptive, bbox = ale.box_element_set(asm, handles['soil_inst'],
-                                           'ALE_Box', box)
-    ale.describe_box_set('ALE_Box', n_adaptive, bbox, total=n_soil)
-    ale.add_domain(model, handles['step_name'], asm.sets['ALE_Box'], 'ALE_BC',
-                   frequency=P.ale_frequency, mesh_sweeps=P.ale_sweeps,
-                   initial_mesh_sweeps=None)
+IND_HALF = 0.0225
+IND_THICK = 0.010
+IND_DEPTH = 0.150
 
-    n_cpus = int(os.environ.get('FLD_NCPU', P.n_cpus))
-    job = jobs.make_implicit_job('ImpAle_' + case, job_name, n_cpus=n_cpus,
-                                 description=CASE_DOC[case])
-    inp = jobs.write_input(job, workdir)
-    inpedit.inject_diagnostics(inp, mode='summary', include_static=True)
+SOIL_E = 20.0e6
+SOIL_NU = 0.30
+SOIL_RHO = 1651.6
+FRICTION = 0.5
 
-    chk = report.InpCheck(inp)
-    chk.requires(r'^\*Static', 'static procedure')
-    chk.requires(r'^\*Adaptive Mesh Controls, name=ALE_BC',
-                 'adaptive mesh controls defined')
-    chk.requires(r'^\*Adaptive Mesh,.*elset=ALE_Box',
-                 'domain restricted to ALE_Box')
-    chk.requires(r'^\*Diagnostics, adaptive mesh=summary',
-                 'ALE diagnostics requested')
-    chk.report()
-
-    if not runner.flag('SUBMIT', True):
-        return {'adaptive_el': n_adaptive, 'submitted': False}
-
-    jobs.submit(job)
-    st = jobs.status(job_name, workdir)
-    msg = os.path.join(workdir, job_name + '.msg')
-    activity = ale.read_msg_activity(msg) if os.path.isfile(msg) else \
-        {'blocks': 0, 'avg_pct_moved': 0.0, 'active': False}
-    if os.path.isfile(msg):
-        ale.assert_active(msg, required=False)
-    depth = (st['step_time'] * P.ind_depth) if st['step_time'] is not None else None
-    return {
-        'adaptive_el': n_adaptive,
-        'msg_blocks': activity['blocks'],
-        'pct_moved': activity['avg_pct_moved'],
-        'completed': st['completed'],
-        'increments': st['increments'],
-        'depth_m': depth,
-        'abort': (st['abort_reason'] or '')[:60],
-    }
+JOB_NAME = 'implicit_ale'
 
 
-def main():
-    workdir = config.workdir(STUDY)
-    os.chdir(workdir)
-    tee = report.start_log(os.path.join(workdir, STUDY + '.log'),
-                           'INDENTER -- IMPLICIT ALE')
-    try:
-        print(__doc__)
-        P = make_params()
-        P.show()
-        P.write_json(os.path.join(workdir, STUDY + '_params.json'))
-        rows = runner.run_study(STUDY, CASES, lambda c, w: run_case(c, w, P),
-                                workdir)
-        runner.write_summary_csv(os.path.join(workdir, STUDY + '_summary.csv'),
-                                 rows)
-    finally:
-        report.stop_log(tee)
+# --- working directory ----------------------------------------------------
+
+workdir = os.environ.get('FLD_WORKDIR')
+if not workdir:
+    workdir = os.path.join(os.path.expanduser('~'), 'abaqus-fld', JOB_NAME)
+workdir = os.path.abspath(workdir)
+if not os.path.isdir(workdir):
+    os.makedirs(workdir)
+os.chdir(workdir)
+print('working directory: %s' % workdir)
 
 
-main()
+# --- model (same as implicit/model.py until the ALE block) ----------------
+
+if 'Model-1' in mdb.models:
+    del mdb.models['Model-1']
+model = mdb.Model(name='Model-1')
+
+sketch = model.ConstrainedSketch(name='soil', sheetSize=10.0 * SOIL_LEN)
+sketch.rectangle(point1=(-SOIL_LEN / 2.0, -SOIL_WID / 2.0),
+                 point2=(SOIL_LEN / 2.0, SOIL_WID / 2.0))
+soil = model.Part(name='Soil', dimensionality=THREE_D, type=DEFORMABLE_BODY)
+soil.BaseSolidExtrude(sketch=sketch, depth=SOIL_DEP)
+
+sketch_i = model.ConstrainedSketch(name='indenter', sheetSize=10.0 * SOIL_LEN)
+sketch_i.rectangle(point1=(-IND_HALF, -SOIL_WID / 2.0),
+                   point2=(IND_HALF, SOIL_WID / 2.0))
+indenter = model.Part(name='Indenter', dimensionality=THREE_D,
+                      type=DEFORMABLE_BODY)
+indenter.BaseSolidExtrude(sketch=sketch_i, depth=IND_THICK)
+
+soil_mat = model.Material(name='SoilMat')
+soil_mat.Density(table=((SOIL_RHO,),))
+soil_mat.Elastic(table=((SOIL_E, SOIL_NU),))
+steel = model.Material(name='SteelMat')
+steel.Density(table=((7850.0,),))
+steel.Elastic(table=((210.0e9, 0.3),))
+
+model.HomogeneousSolidSection(name='SoilSec', material='SoilMat')
+model.HomogeneousSolidSection(name='IndSec', material='SteelMat')
+soil.SectionAssignment(region=regionToolset.Region(cells=soil.cells),
+                       sectionName='SoilSec', offsetType=MIDDLE_SURFACE,
+                       thicknessAssignment=FROM_SECTION)
+indenter.SectionAssignment(region=regionToolset.Region(cells=indenter.cells),
+                           sectionName='IndSec', offsetType=MIDDLE_SURFACE,
+                           thicknessAssignment=FROM_SECTION)
+
+# ALE only works on first-order reduced-integration solids (C3D8R).
+elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=STANDARD)
+for part in (soil, indenter):
+    part.setElementType(regions=(part.cells,), elemTypes=(elem,))
+    part.setMeshControls(regions=part.cells, elemShape=HEX, technique=STRUCTURED)
+    part.seedPart(size=SEED, deviationFactor=0.1, minSizeFactor=0.1)
+    part.generateMesh()
+print('soil elements: %d' % len(soil.elements))
+
+asm = model.rootAssembly
+asm.DatumCsysByDefault(CARTESIAN)
+soil_inst = asm.Instance(name='SoilInst', part=soil, dependent=ON)
+ind_inst = asm.Instance(name='IndInst', part=indenter, dependent=ON)
+asm.translate(instanceList=('SoilInst',), vector=(0.0, 0.0, -SOIL_DEP))
+asm.translate(instanceList=('IndInst',), vector=(0.0, 0.0, 1.0e-6))
+
+rp = asm.ReferencePoint(point=(0.0, 0.0, IND_THICK / 2.0))
+rp_region = regionToolset.Region(
+    referencePoints=(asm.referencePoints[rp.id],))
+asm.Set(name='IndRP', referencePoints=(asm.referencePoints[rp.id],))
+model.RigidBody(name='IndRigid', refPointRegion=rp_region,
+                bodyRegion=regionToolset.Region(cells=ind_inst.cells),
+                refPointAtCOM=ON)
+
+model.StaticStep(
+    name='Push', previous='Initial', nlgeom=ON, timePeriod=1.0,
+    initialInc=0.005, minInc=1.0e-8, maxInc=0.05, maxNumInc=1000,
+    stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
+    stabilizationMagnitude=2.0e-4, adaptiveDampingRatio=0.05,
+    continueDampingFactors=ON)
+model.TabularAmplitude(name='Ramp', timeSpan=STEP,
+                       data=((0.0, 0.0), (1.0, 1.0)))
+model.HistoryOutputRequest(
+    name='Energies', createStepName='Push',
+    variables=('ALLIE', 'ALLSD', 'ALLWK', 'ETOTAL'), numIntervals=200)
+model.HistoryOutputRequest(
+    name='RP', createStepName='Push', region=asm.sets['IndRP'],
+    variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
+
+zc = -SOIL_DEP / 2.0
+for name, point, dof in (
+        ('XMIN', (-SOIL_LEN / 2.0, 0.0, zc), 1),
+        ('XMAX', (SOIL_LEN / 2.0, 0.0, zc), 1),
+        ('YMIN', (0.0, -SOIL_WID / 2.0, zc), 2),
+        ('YMAX', (0.0, SOIL_WID / 2.0, zc), 2)):
+    faces = soil_inst.faces.findAt((point,))
+    if len(faces) == 0:
+        raise RuntimeError('missed soil face %s at %r' % (name, point))
+    kwargs = {'name': 'Roller-' + name, 'createStepName': 'Initial',
+              'region': regionToolset.Region(faces=faces),
+              'distributionType': UNIFORM}
+    kwargs['u%d' % dof] = 0.0
+    model.DisplacementBC(**kwargs)
+base = soil_inst.faces.findAt(((0.0, 0.0, -SOIL_DEP),))
+if len(base) == 0:
+    raise RuntimeError('missed the soil base')
+model.EncastreBC(name='Base', createStepName='Initial',
+                 region=regionToolset.Region(faces=base))
+
+model.DisplacementBC(
+    name='Push', createStepName='Push', region=asm.sets['IndRP'],
+    u1=0.0, u2=0.0, u3=-IND_DEPTH, ur1=0.0, ur2=0.0, ur3=0.0,
+    amplitude='Ramp', distributionType=UNIFORM)
+
+prop = model.ContactProperty('Interface')
+prop.NormalBehavior(pressureOverclosure=HARD, allowSeparation=ON,
+                    constraintEnforcementMethod=DEFAULT)
+prop.TangentialBehavior(
+    formulation=PENALTY, directionality=ISOTROPIC, table=((FRICTION,),),
+    maximumElasticSlip=FRACTION, fraction=0.005)
+contact = model.ContactStd(name='GeneralContact', createStepName='Push')
+contact.includedPairs.setValuesInStep(stepName='Push', useAllstar=True)
+contact.contactPropertyAssignments.appendInStep(
+    stepName='Push', assignments=((GLOBAL, SELF, 'Interface'),))
+
+
+# --- ALE (the only extra block versus implicit/model.py) ------------------
+# Restrict the domain to a box around the indenter. An empty set is silent:
+# Abaqus will not warn, and ALE will do nothing.
+
+half = 3.0 * IND_HALF
+zmin = max(-1.3 * IND_DEPTH, -SOIL_DEP + 2.0 * SEED)
+ale_elems = soil_inst.elements.getByBoundingBox(
+    xMin=-half, xMax=half, yMin=-SOIL_WID, yMax=SOIL_WID,
+    zMin=zmin, zMax=0.0)
+if len(ale_elems) == 0:
+    raise RuntimeError('ALE box is empty. ALE would run and do nothing.')
+asm.Set(name='ALE_Box', elements=ale_elems)
+print('ALE elements: %d' % len(asm.sets['ALE_Box'].elements))
+
+model.AdaptiveMeshControl(name='ALE_BC', smoothingPriority=UNIFORM)
+# Standard has no initial mesh sweeps. Do not pass initialMeshSweeps.
+model.steps['Push'].AdaptiveMeshDomain(
+    region=asm.sets['ALE_Box'], controls='ALE_BC',
+    frequency=10, meshSweeps=1)
+
+
+# --- write, check, maybe submit -------------------------------------------
+
+job = mdb.Job(name=JOB_NAME, model='Model-1', type=ANALYSIS,
+              numCpus=1, multiprocessingMode=DEFAULT,
+              memory=90, memoryUnits=PERCENTAGE)
+job.writeInput()
+inp = os.path.join(workdir, JOB_NAME + '.inp')
+print('wrote %s' % inp)
+
+# CAE cannot write *Diagnostics. This inserts it after *Static.
+inject_diagnostics(inp, mode='summary', include_static=True)
+
+chk = InpCheck(inp)
+chk.requires(r'^\*Static', 'static procedure')
+chk.requires(r'^\*Adaptive Mesh Controls, name=ALE_BC', 'ALE controls')
+chk.requires(r'^\*Adaptive Mesh,.*elset=ALE_Box', 'restricted ALE domain')
+chk.requires(r'^\*Diagnostics, adaptive mesh=summary', 'ALE diagnostics')
+chk.report()
+
+submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
+    '0', 'false', 'no', 'off')
+if submit:
+    job.submit(consistencyChecking=OFF)
+    job.waitForCompletion()
+    print('job finished. look at the .sta for the abort message.')
+else:
+    print('FLD_SUBMIT=0: deck written, not submitted.')
