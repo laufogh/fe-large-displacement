@@ -18,5 +18,6 @@
 ! Tensor tools: A. Niemunis (KIT Karlsruhe).
 ! See PROVENANCE.md in this directory.
 !=======================================================================================================
+! Abaqus/Standard UMAT. user=call_implicit.f
       include'sdvini.f'
       include'HPP_Staubach_implicit.f'

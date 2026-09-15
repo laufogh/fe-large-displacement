@@ -35,17 +35,17 @@ implementation is not the model.
 |---|---|
 | `HPP_Staubach_implicit.f` | UMAT for Abaqus/Standard |
 | `HPP_Staubach_explicit.f` | Explicit-integration version of the model |
-| `HPP_Staubach_explicit_noclamp.f` | As above, without the state clamping. This is the variant `call_explicit.f` includes. |
+| `HPP_Staubach_explicit_noclamp.f` | As above, without the state clamping. Dry Explicit includes this. |
 | `VUMAT_dry_Staubach.f` | Dry / uncoupled VUMAT interface. Derived from the hydro-mechanically coupled `VUMAT_HMC_Staubach_Abq2023.f` with all pore-fluid coupling removed: total stress = effective stress. |
 | `VUMAT_HMC_Staubach_Abq2023.f` | Hydro-mechanically coupled VUMAT. Pore pressure is carried on the temperature DOF. |
-| `call2023.f` | Top-level file for a coupled Explicit job (`user=`). |
+| `call_explicit_saturated.f` | Top-level file for a saturated Explicit job (`user=`). |
 | `vuamp.f` | User amplitude used by the coupled pile-driving example. |
 | `vusdfld_parallel.f` | VUSDFLD: effective contact stress from pore pressure. |
 | `vufield_parallel.f` | VUFIELD: maps that contact field onto the slave surface. |
 | `tools.f` | Tensor operations (Niemunis) |
 | `sdvini.f` | SDVINI routine setting the initial void ratio from a Bauer profile |
 | `call_implicit.f` | Top-level file for `user=` in Abaqus/Standard |
-| `call_explicit.f` | Top-level file for a dry Explicit job (`user=`) |
+| `call_explicit_dry.f` | Top-level file for a dry Explicit job (`user=`) |
 | `constants.txt` | A calibration. **See the warning below.** |
 
 ## The calibration is not part of the model
@@ -72,7 +72,7 @@ whose calibration you used.
 the temperature DOF, and solves the fluid mass balance alongside the momentum
 equation, including cavitation. `vusdfld_parallel.f` and `vufield_parallel.f`
 map that pore pressure onto the contact surface as an effective friction field.
-Compile them through `call2023.f`. How to set the Abaqus keywords is in
+Compile them through `call_explicit_saturated.f`. How to set the Abaqus keywords is in
 [`README.md`](README.md).
 
 These coupled files came from the same Staubach GPL-3.0 suite as the dry
@@ -83,11 +83,12 @@ before changing the hardcoded permeability, water table, or pile geometry.
 ## Modifications made here
 
 1. Files were renamed for clarity: upstream `call.f` → `call_implicit.f`,
-   upstream `call_dry.f` → `call_explicit.f`.
+   upstream `call_dry.f` → `call_explicit_dry.f`, upstream `call2023.f` →
+   `call_explicit_saturated.f`.
 2. GPL-3.0 notices were added to `VUMAT_dry_Staubach.f`, `sdvini.f`,
-   `call_implicit.f`, `call_explicit.f`, `call2023.f` and `vuamp.f`, which are
-   derivative works or are combined with GPL code and carried no notice of
-   their own.
+   `call_implicit.f`, `call_explicit_dry.f`, `call_explicit_saturated.f` and
+   `vuamp.f`, which are derivative works or are combined with GPL code and
+   carried no notice of their own.
 3. Nothing in the numerical content of any file has been changed.
 
 ## Verifying it works

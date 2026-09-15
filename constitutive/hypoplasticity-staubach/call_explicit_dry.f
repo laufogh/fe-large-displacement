@@ -18,6 +18,8 @@
 ! Tensor tools: A. Niemunis (KIT Karlsruhe).
 ! See PROVENANCE.md in this directory.
 !=======================================================================================================
+! Dry Explicit suite. Total stress = effective stress.
+! user=call_explicit_dry.f
       include'tools.f'
       include'HPP_Staubach_explicit_noclamp.f'
       include'VUMAT_dry_Staubach.f'

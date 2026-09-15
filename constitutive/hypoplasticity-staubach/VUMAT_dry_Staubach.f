@@ -22,7 +22,7 @@
 ! VUMAT_dry_Staubach
 !
 ! Dry / uncoupled explicit VUMAT interface for the hypoplastic model with
-! intergranular strain (HPP_Staubach_explicit.f).
+! intergranular strain (HPP_Staubach_explicit_noclamp.f).
 !
 ! Derived from VUMAT_HMC_Staubach_Abq2023.f (P. Staubach, GPLv3).
 ! All hydro-mechanical coupling has been removed:

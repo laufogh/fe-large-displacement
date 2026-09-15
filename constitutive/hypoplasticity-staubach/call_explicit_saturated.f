@@ -18,6 +18,8 @@
 ! Tensor tools: A. Niemunis (KIT Karlsruhe).
 ! See PROVENANCE.md in this directory.
 !=======================================================================================================
+! Saturated Explicit suite. Pore pressure on the temperature DOF.
+! user=call_explicit_saturated.f
       include'tools.f'
       include'HPP_Staubach_explicit.f'
       include'VUMAT_HMC_Staubach_Abq2023.f'

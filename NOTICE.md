@@ -38,9 +38,10 @@ compiles and links the GPL-covered Fortran; review the GPL and the applicable
 Abaqus terms before distributing such binaries.
 
 Files modified here: `VUMAT_dry_Staubach.f`, `sdvini.f`, `call_implicit.f`,
-`call_explicit.f`, `call2023.f` and `vuamp.f` had GPL-3.0 notices **added**
-(they are derivative works or are combined with GPL code and carried no
-notice). Two files were renamed. No numerical content was changed.
+`call_explicit_dry.f`, `call_explicit_saturated.f` and `vuamp.f` had GPL-3.0
+notices **added** (they are derivative works or are combined with GPL code and
+carried no notice). Call files were renamed so dry versus saturated is in the
+filename. No numerical content was changed.
 
 The constitutive model itself — hypoplasticity for granular materials with the
 intergranular strain extension — is the work of Kolymbas, Gudehus, von
