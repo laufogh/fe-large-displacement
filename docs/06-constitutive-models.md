@@ -1,6 +1,6 @@
 # Constitutive models for large-displacement geotechnics
 
-Companion to `examples/ex07_umat_single_element` and `constitutive/`.
+Companion to `constitutive/single_element` and `constitutive/`.
 
 ## Why the built-in models are not enough
 
@@ -41,7 +41,7 @@ contents and their licences. In summary:
 
 ### 1. Verify the subroutine on one element first
 
-`examples/ex07_umat_single_element` runs a single element through oedometric
+`constitutive/single_element` runs a single element through oedometric
 compression, drained triaxial compression and strain cycles, in **both**
 Abaqus/Standard (UMAT) and Abaqus/Explicit (VUMAT), and compares them.
 
@@ -123,5 +123,5 @@ Drop it under `constitutive/<name>/` with:
   and the `*Depvar` count;
 * a `PROVENANCE.md` recording where it came from and under what licence.
 
-Then run `examples/ex07_umat_single_element` against it and commit the resulting
+Then run `constitutive/single_element` against it and commit the resulting
 stress paths as the reference. That is what makes the next port checkable.

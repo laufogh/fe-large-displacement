@@ -72,6 +72,16 @@ out/
 results/
 
 # ---------------------------------------------------------------------------
+# LaTeX build artifacts (keep the compiled PDFs)
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+!teaching/*.pdf
+
 # Editors / OS
 # ---------------------------------------------------------------------------
 .vscode/

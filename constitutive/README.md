@@ -31,7 +31,7 @@ Then, roughly in order of effort:
 
 ## Before you put any of them in a large model
 
-Run `examples/ex07_umat_single_element`. It pushes one element through
+Run `constitutive/single_element`. It pushes one element through
 oedometric compression, drained triaxial compression and strain cycles, in both
 Abaqus/Standard and Abaqus/Explicit, and compares the two. For a rate-independent
 model they must agree; when they do not, the difference tells you which one is
@@ -55,7 +55,7 @@ constitutive/<name>/
     LICENSE                 if not the repository default
 ```
 
-Then run example 07 against it and commit the resulting stress paths as the
+Then run `constitutive/single_element` against it and commit the resulting stress paths as the
 reference. That is what makes the next port checkable — and the next port is
 usually yours, six months later, when you cannot remember what "right" looked
 like.

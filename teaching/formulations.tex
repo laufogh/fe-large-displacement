@@ -1,0 +1,181 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\docshort}{Code changes from implicit to CEL}
+\input{preamble}
+\hypersetup{pdftitle={Code changes from implicit to CEL}}
+
+\title{\textbf{Code changes from implicit to CEL}}
+\author{fe-large-displacement}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\noindent
+Five formulations of one strip-indenter problem. Geometry, mesh, material and
+contact are built once. Each model script applies a delta, writes the deck,
+checks it, and submits. What follows is that shared core, a one-page map of
+the deltas, then only the code that changes.
+
+\section{Shared core}
+
+Builder: \coderef{examples/common/indenter_model.py}{99}
+\texttt{build(P, model\_name, solver)}. Soil block, rigid strip indenter,
+\texttt{C3D8R}, rollers, encastre base, general contact. Default material is
+elastic on purpose.
+
+The step, the drive and the contact helper are the first split.
+
+\lstinputlisting[firstline=191,lastline=239,firstnumber=191]{\reporoot/examples/common/indenter_model.py}
+
+\code{solver='implicit'} selects the Standard element library, a
+\texttt{*Static} step, a displacement BC and Standard general contact.
+\code{solver='explicit'} selects Explicit elements, \texttt{*Dynamic, Explicit},
+a velocity BC and Explicit general contact. Everything above that call is
+shared.
+
+\section{Delta map}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.20\textwidth}p{0.22\textwidth}p{0.24\textwidth}p{0.22\textwidth}@{}}
+\toprule
+Rung & Step / job & Extra block & Check \\
+\midrule
+Implicit & \texttt{*Static}
+  \coderef{lib/fldlib/steps.py}{42}
+  \coderef{lib/fldlib/jobs.py}{78}
+  & none & no \texttt{*Adaptive Mesh} \\
+Implicit ALE & same Static step
+  & \texttt{*Adaptive Mesh} on Standard,
+    \texttt{initial\_mesh\_sweeps=None}
+    \coderef{lib/fldlib/ale.py}{221}
+  & diagnostics with \texttt{include\_static=True} \\
+Explicit & \texttt{*Dynamic, Explicit}
+  \coderef{lib/fldlib/steps.py}{66}
+  \coderef{lib/fldlib/jobs.py}{39}
+  & optional \texttt{*Section Controls}
+  & \texttt{ALLKE}/\texttt{ALLIE} \\
+Explicit ALE & same Explicit step
+  & \texttt{*Adaptive Mesh} plus
+    \texttt{*Diagnostics}
+    \coderef{lib/fldlib/inpedit.py}{137}
+  & \texttt{assert\_active} on the \texttt{.msg} \\
+Explicit CEL & same Explicit step
+  & Eulerian part, \texttt{EC3D8R},
+    void, volume fraction
+    \coderef{lib/fldlib/cel.py}{43}
+  & void fraction, no ALE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Implicit}
+
+\lstinputlisting[firstline=42,lastline=63,firstnumber=42]{\reporoot/lib/fldlib/steps.py}
+
+Stabilisation is a fictitious viscous force. Check \texttt{ALLSD} against
+\texttt{ALLIE}. The job helper is \coderef{lib/fldlib/jobs.py}{78}. The model
+script forbids ALE in the deck.
+
+\lstinputlisting[firstline=44,lastline=52,firstnumber=44]{\reporoot/examples/indenter/implicit/model.py}
+
+Expect abort on \texttt{Too many attempts made for this increment}. That is the
+result.
+
+\section{Implicit ALE}
+
+Same \code{build(..., solver='implicit')} call. Then attach a restricted
+domain. Standard has no initial mesh sweeps, so they are omitted.
+
+\lstinputlisting[firstline=51,lastline=64,firstnumber=51]{\reporoot/examples/indenter/implicit_ale/model.py}
+
+\texttt{add\_domain} is shared with Explicit. The Standard path is the
+\texttt{None}:
+
+\lstinputlisting[firstline=242,lastline=250,firstnumber=242]{\reporoot/lib/fldlib/ale.py}
+
+Abaqus/Standard ALE is Lagrangian-only, one smoothing algorithm, intended for
+wear and acoustics. Do not expect skirt penetration from it. The model exists
+so the keywords are visible. \code{assert_active(..., required=False)}
+because Standard may omit the Explicit-style \texttt{.msg} block.
+
+\section{Explicit}
+
+\lstinputlisting[firstline=66,lastline=84,firstnumber=66]{\reporoot/lib/fldlib/steps.py}
+
+Job: \coderef{lib/fldlib/jobs.py}{39}. \code{DOUBLE_PLUS_PACK} is not
+optional for soil. Drive is velocity with a \texttt{SMOOTH STEP} ramp
+(\coderef{examples/common/indenter_model.py}{222}).
+
+Cases in \code{examples/indenter/explicit}:
+\begin{itemize}
+  \item A --- baseline. Distortion abort. Compare depth with implicit.
+  \item B --- four times the velocity. Energy test. See
+        \code{docs/01-explicit-quasi-static.md}.
+  \item C --- distortion control injected after \texttt{*Preprint}. See
+        \code{docs/04-section-controls.md}. Do not combine it with enhanced
+        hourglass.
+\end{itemize}
+
+\code{fldlib.inpedit.section_controls_keyword} raises if you ask for both.
+
+\section{Explicit ALE}
+
+Same Explicit build. The only new block is the adaptive domain, on a
+restricted element set.
+
+\lstinputlisting[firstline=63,lastline=74,firstnumber=63]{\reporoot/examples/indenter/explicit_ale/model.py}
+
+The box helper is \coderef{examples/common/indenter_model.py}{323}. An empty
+box is an inert domain. CAE supports one domain per step and silently replaces
+a second call. \code{add_domain} raises instead.
+
+CAE cannot write \texttt{*Diagnostics}. Inject it after the procedure card.
+
+\lstinputlisting[firstline=137,lastline=148,firstnumber=137]{\reporoot/lib/fldlib/inpedit.py}
+
+Then \code{ale.assert_active(msg)}. Case A (no ALE) must report no activity,
+or the parser is wrong. Measured keyword defaults, the \texttt{MESH SWEEPS}
+documentation error, and general-contact compatibility are in
+\code{docs/02-ale-adaptive-meshing.md}. Several well-separated regions and
+domain-level parallelisation are in
+\code{docs/03-ale-multi-region-parallel.md}. That study is not a separate
+model. The caisson script uses the two-region pattern.
+
+\section{Explicit CEL}
+
+The soil is no longer the shared Lagrangian part. It is an Eulerian box with
+empty space above the surface. The indenter stays Lagrangian. Element type
+\texttt{EC3D8R}. No \texttt{*Geostatic}.
+
+\lstinputlisting[firstline=43,lastline=57,firstnumber=43]{\reporoot/lib/fldlib/cel.py}
+
+Case A of \code{examples/indenter/explicit_cel} sets void thickness to zero
+(the silent mistake). Case B sets it to half the penetration depth. After
+assignment, \code{cel.check_void_fraction} warns if too little of the
+domain is empty. The deck must contain \texttt{*Eulerian Section},
+\texttt{EC3D8R}, \texttt{*Initial Conditions, type=VOLUME FRACTION} and
+\texttt{*Contact}, and must not contain \texttt{*Adaptive Mesh}.
+
+\section{Checks that apply on more than one rung}
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Check & Where \\
+\midrule
+\code{InpCheck} on the written \texttt{.inp} & every model \\
+\texttt{ALLKE}/\texttt{ALLIE}, \texttt{ALLAE}, \texttt{ETOTAL}
+  & every Explicit run \\
+\texttt{*Diagnostics} then \code{assert_active} & both ALE models \\
+\code{check_void_fraction} & CEL \\
+\code{tools/check_odb_finite.py} & any user-material job \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Write the input. Read it. Assert. Then submit.
+
+\end{document}

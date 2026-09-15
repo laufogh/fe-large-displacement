@@ -1,4 +1,11 @@
-"""Arbitrary Lagrangian-Eulerian (ALE) adaptive meshing in Abaqus/Explicit.
+"""Arbitrary Lagrangian-Eulerian (ALE) adaptive meshing.
+
+Abaqus/Explicit is the production tool. Abaqus/Standard also has ALE, on
+geometrically nonlinear ``*Static`` (and a few coupled) steps, with a single
+smoothing algorithm, no initial mesh sweeps, and Lagrangian domains only. That
+path is enough to attach a domain in the implicit-ALE model. It is not enough
+for skirt penetration. Use Explicit ALE, then CEL, when Standard ALE stops
+helping.
 
 What ALE actually is, in one paragraph
 --------------------------------------
@@ -220,6 +227,9 @@ def add_domain(model, step_name, region, controls, frequency=10,
     read the deck and see immediately what the domain covers. A Region built
     from `cells=...` makes CAE emit an internal `_PickedSetNN` and you lose that.
 
+    `initial_mesh_sweeps` is an Explicit option. Pass ``None`` on a Standard
+    ``*Static`` step: Abaqus/Standard has no initial mesh sweeps.
+
     Raises if a domain already exists on the step, because CAE would replace it
     without a word.
     """
@@ -229,13 +239,15 @@ def add_domain(model, step_name, region, controls, frequency=10,
             'step %r already has an adaptive mesh domain (%s). Abaqus/CAE '
             'supports only one per step and would silently replace it.'
             % (step_name, list(step.adaptiveMeshDomains.keys())))
-    return step.AdaptiveMeshDomain(
+    kwargs = dict(
         region=region,
         controls=controls,
         frequency=frequency,
         meshSweeps=mesh_sweeps,
-        initialMeshSweeps=initial_mesh_sweeps,
     )
+    if initial_mesh_sweeps is not None:
+        kwargs['initialMeshSweeps'] = initial_mesh_sweeps
+    return step.AdaptiveMeshDomain(**kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -290,16 +302,26 @@ def read_msg_activity(msg_path):
     }
 
 
-def assert_active(msg_path, printer=print):
-    """Raise unless the .msg proves ALE actually moved nodes."""
+def assert_active(msg_path, printer=print, required=True):
+    """Raise unless the .msg proves ALE actually moved nodes.
+
+    Abaqus/Standard does not write the Explicit per-increment diagnostic
+    block. Pass ``required=False`` on a Standard deck so a missing block is
+    reported rather than treated as proof that the domain was inert.
+    """
     info = read_msg_activity(msg_path)
     printer('  ALE activity in %s: %d diagnostic block(s), avg %.2f %% of '
             'nodes moved' % (msg_path, info['blocks'], info['avg_pct_moved']))
-    if not info['active']:
-        raise AssertionError(
-            'ALE was DEFINED BUT INERT in %s (%d blocks, avg %.3f %% nodes '
-            'moved). Common causes: the domain elset is empty; the elements are '
-            'not first-order reduced-integration; the step is not '
-            '*Dynamic, Explicit; *Diagnostics was never injected.'
-            % (msg_path, info['blocks'], info['avg_pct_moved']))
+    if info['active']:
+        return info
+    msg = (
+        'ALE was DEFINED BUT INERT in %s (%d blocks, avg %.3f %% nodes '
+        'moved). Common causes: the domain elset is empty; the elements are '
+        'not first-order reduced-integration; the step is not one ALE '
+        'supports; *Diagnostics was never injected.'
+        % (msg_path, info['blocks'], info['avg_pct_moved']))
+    if required:
+        raise AssertionError(msg)
+    printer('  *** %s' % msg)
+    printer('  (required=False: Standard .msg files may simply omit this block)')
     return info

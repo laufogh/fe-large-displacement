@@ -11,7 +11,7 @@ A `Params` object is an explicit, printable, overridable record. Every example
 prints its full parameter table into the log before it builds anything, so the
 log alone tells you what was run.
 
-Overrides come from the environment, which is what lets an automated test agent
+Overrides come from the environment, which is what lets a batch of runs
 sweep a study without editing a single file::
 
     set FLD_INDENT_VEL=2.0
@@ -20,7 +20,7 @@ sweep a study without editing a single file::
 
 Usage::
 
-    P = Params('ex03_ale_indenter')
+    P = Params('indenter_explicit_ale')
     P.add('soil_len',   0.30, 'm',   'soil block length (x)')
     P.add('indent_vel', 1.0,  'm/s', 'prescribed indenter velocity')
     P.add('ale_mode',  'box', '-',   'off | whole | box',

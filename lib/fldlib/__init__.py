@@ -20,7 +20,7 @@ Import from a script that Abaqus runs::
     from fldlib import ale, cel, steps, materials, report
 
 `bootstrap()` below does that path insertion for you when a script is invoked as
-``abaqus cae noGUI=examples/exNN_.../model.py``, where ``__file__`` is not always
+``abaqus cae noGUI=examples/.../model.py``, where ``__file__`` is not always
 set the way you would expect.
 """
 

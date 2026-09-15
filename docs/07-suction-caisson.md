@@ -1,6 +1,6 @@
 # Suction caisson installation
 
-Companion to `examples/ex08_suction_caisson`.
+Companion to `examples/suction_caisson`.
 
 ## The physics you are trying to capture
 
@@ -25,7 +25,7 @@ first. It is not a second-order correction.
 
 ## What the example models, and what it does not
 
-`examples/ex08_suction_caisson` models **effect 1 only.** Suction is applied as a
+`examples/suction_caisson` models **effect 1 only.** Suction is applied as a
 concentrated downward force on the caisson reference point, equal to Δp times the
 plan area.
 
@@ -62,7 +62,8 @@ predict piping.
 
 `*Soils, consolidation` with pore-pressure elements (C3D8P) gives a genuinely
 coupled analysis. The problem is that Abaqus/Standard cannot get through the
-large deformation: you are back at the convergence wall of example 01, and ALE
+large deformation: you are back at the convergence wall of the implicit
+indenter, and ALE
 adaptive meshing is not available for `*Soils`. The practical use of this route is
 for the *final* penetration increment, or for a small-deformation seepage study
 at a fixed depth.
@@ -140,7 +141,7 @@ either.
 ## What to extract
 
 ```bash
-abaqus python lib/postproc/history.py ex08_ale_J.odb CAISSONRP curve_J.csv
+abaqus python lib/postproc/history.py sc_ale_J.odb CAISSONRP curve_J.csv
 ```
 
 * **Resistance against depth, case J.** The jacked installation curve. This is

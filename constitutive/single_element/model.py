@@ -1,7 +1,7 @@
-"""Example 07 -- verify a constitutive subroutine on ONE element before you trust it
-in a large model.
+"""Verify a constitutive subroutine on ONE element before you trust it in a
+large model.
 
-    abaqus cae noGUI=examples/ex07_umat_single_element/model.py
+    abaqus cae noGUI=constitutive/single_element/model.py
 
 Debugging a UMAT inside a 50 000-element penetration analysis is a bad way to
 spend a month. One element, prescribed strain path, a few seconds per run, and
@@ -29,7 +29,7 @@ Configure it
     set FLD_UMAT_EXPLICIT=C:\\path\\to\\call_dry.f
     set FLD_UMAT_CONSTANTS=C:\\path\\to\\constants.txt
     set FLD_UMAT_NSDV=40
-    abaqus cae noGUI=examples/ex07_umat_single_element/model.py
+    abaqus cae noGUI=constitutive/single_element/model.py
 
 With no subroutine configured the example runs on the Abaqus built-in
 Mohr-Coulomb model instead, which still exercises the whole harness and gives
@@ -71,7 +71,7 @@ from fldlib import (config, report, jobs, steps, materials, subroutines,
 from common import runner                                       # noqa: E402
 
 
-STUDY = 'ex07_umat_single_element'
+STUDY = 'umat_single_element'
 
 PATHS = ['oedo', 'triax', 'cyc']
 SOLVERS = ['implicit', 'explicit']
@@ -331,8 +331,8 @@ def run_case(case, workdir, P):
     path, solver = case.rsplit('_', 1)
     print('  %s: %s, %s' % (case, PATH_DOC[path], solver))
 
-    model_name = 'Ex07_' + case
-    job_name = 'ex07_%s' % case
+    model_name = 'Umat_' + case
+    job_name = 'umat_%s' % case
     handles = build_cube(P, model_name, path, solver)
 
     source = P.umat_implicit if solver == 'implicit' else P.umat_explicit
@@ -391,7 +391,7 @@ def main():
     os.chdir(workdir)
 
     tee = report.start_log(os.path.join(workdir, STUDY + '.log'),
-                           'EXAMPLE 07 -- SINGLE-ELEMENT CONSTITUTIVE CHECK')
+                           'SINGLE-ELEMENT CONSTITUTIVE CHECK')
     try:
         print(__doc__)
         P = make_params()
@@ -421,7 +421,7 @@ def main():
     * NaN in the explicit run and not the implicit one is almost always
       `*Depvar` or uninitialised state.
 
-  Only once these agree should the model go anywhere near example 08.
+  Only once these agree should the model go anywhere near a penetration job.
 """)
     finally:
         report.stop_log(tee)

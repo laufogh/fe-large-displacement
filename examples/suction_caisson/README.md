@@ -1,10 +1,10 @@
-# Example 08 - suction caisson installation
+# Suction caisson installation
 
-The capstone. Quarter-symmetry lab-scale caisson, jacked phase then suction-assisted phase, in ALE or CEL.
+Quarter-symmetry lab-scale caisson, jacked phase then suction-assisted phase, in ALE or CEL.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run
-abaqus cae noGUI=examples/ex08_suction_caisson/model.py
+abaqus cae noGUI=examples/suction_caisson/model.py
 ```
 
 Add `set FLD_SUBMIT=0` to build and verify the decks without solving.

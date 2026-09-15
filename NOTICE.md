@@ -3,8 +3,8 @@
 ## Scope of the root licence
 
 The `LICENSE` at the root of this repository is the MIT licence, and it covers
-the original work here: `docs/`, `examples/`, `lib/`, `tools/`, `briefs/` and the
-repository scaffolding.
+the original work here: `docs/`, `examples/`, `lib/`, `tools/`, `teaching/` and
+the repository scaffolding.
 
 It does **not** cover everything under `constitutive/`. Each subdirectory there
 carries its own licence and provenance file, and those terms govern. This file

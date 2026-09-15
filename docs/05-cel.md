@@ -1,6 +1,6 @@
 # Coupled Eulerian-Lagrangian (CEL)
 
-Companion to `examples/ex06_cel_indenter`.
+Companion to `examples/indenter/explicit_cel`.
 
 ## What it is
 
@@ -38,7 +38,7 @@ whatsoever.
 
 `fldlib.cel.check_void_fraction()` counts the empty elements and complains below
 15 %. That is a rule of thumb, not a law: deep penetration needs more. Case A of
-example 06 exists to show what the mistake costs.
+`examples/indenter/explicit_cel` exists to show what the mistake costs.
 
 The top face must also stay **free** (no normal restraint). It is the outflow
 boundary; closing it is a second way to lose heave.
@@ -48,7 +48,7 @@ boundary; closing it is a second way to lose heave.
 The material boundary is reconstructed inside each element from the volume
 fractions, so it is roughly one element thick. Expect a blurred surface and a
 contact interface that is only as sharp as your mesh. Compare cases B and C of
-example 06: four times the elements for a visibly sharper surface.
+the former mesh-refinement case: four times the elements for a visibly sharper surface.
 
 This has a practical consequence for skirt penetration: **the skirt wall must be
 several Eulerian elements thick**, or the soil either side of it merges through

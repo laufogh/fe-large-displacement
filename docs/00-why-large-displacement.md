@@ -1,6 +1,6 @@
 # Why large-displacement geotechnics needs a different toolkit
 
-> Start here. Read this, then run example 01, then come back.
+> Start here. Read this, then run `examples/indenter/implicit`, then come back.
 
 ## The problem in one paragraph
 
@@ -24,10 +24,10 @@ necessary is a technique whose failure modes you will not recognise.
 | # | Approach | What it changes | Where it stops |
 |---|---|---|---|
 | 1 | **Implicit Lagrangian** (`*Static`) | nothing | convergence fails once the soil starts failing; typically a few percent of the diameter |
-| 2 | **Explicit Lagrangian** (`*Dynamic, Explicit`) | no convergence to lose | element distortion; typically 10–40 % of the diameter |
-| 3 | **+ section controls** | distortion control, enhanced hourglass | same failure, deferred; up to ~2.5× further in a marginal case |
-| 4 | **ALE adaptive meshing** | nodes move relative to material, topology fixed | material has to change its topological relationship to the mesh — flow around a tip, closure behind an object |
-| 5 | **CEL** | material flows through a fixed mesh | nothing, but the free surface becomes diffuse and the cost per useful element rises |
+| 2 | **Implicit ALE** | Standard adaptive mesh on the static step | the same wall, usually. Standard ALE is limited |
+| 3 | **Explicit Lagrangian** (`*Dynamic, Explicit`) | no convergence to lose | element distortion; typically 10–40 % of the diameter |
+| 4 | **Explicit ALE** | nodes move relative to material, topology fixed | material has to change its topological relationship to the mesh — flow around a tip, closure behind an object |
+| 5 | **Explicit CEL** | material flows through a fixed mesh | nothing, but the free surface becomes diffuse and the cost per useful element rises |
 
 There is a sixth rung this repository does not cover — particle methods (MPM,
 SPH) and adaptive remeshing with full solution mapping. If CEL is not enough,
@@ -85,10 +85,10 @@ thing that works.
 
 1. This file.
 2. [01-explicit-quasi-static.md](01-explicit-quasi-static.md) — the acceptance test you will use constantly.
-3. Run `examples/ex01_lagrangian_limit` and `examples/ex02_quasi_static`.
-4. [04-section-controls.md](04-section-controls.md) — cheapest wins first; run `ex03`.
-5. [02-ale-adaptive-meshing.md](02-ale-adaptive-meshing.md) — run `ex04`.
-6. [03-ale-multi-region-parallel.md](03-ale-multi-region-parallel.md) — run `ex05` on a many-core machine.
-7. [05-cel.md](05-cel.md) — run `ex06`.
-8. [06-constitutive-models.md](06-constitutive-models.md) — run `ex07`.
-9. [07-suction-caisson.md](07-suction-caisson.md) — run `ex08`.
+3. Run `examples/indenter/implicit` and `examples/indenter/explicit`.
+4. [04-section-controls.md](04-section-controls.md) — cheapest wins first; case C of `examples/indenter/explicit`.
+5. [02-ale-adaptive-meshing.md](02-ale-adaptive-meshing.md) — run `examples/indenter/explicit_ale`.
+6. [03-ale-multi-region-parallel.md](03-ale-multi-region-parallel.md) — measured on a many-core machine. Not a separate model.
+7. [05-cel.md](05-cel.md) — run `examples/indenter/explicit_cel`.
+8. [06-constitutive-models.md](06-constitutive-models.md) — run `constitutive/single_element`.
+9. [07-suction-caisson.md](07-suction-caisson.md) — run `examples/suction_caisson`.

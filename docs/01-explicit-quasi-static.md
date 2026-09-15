@@ -1,6 +1,6 @@
 # Using a dynamic solver for a static problem
 
-Companion to `examples/ex02_quasi_static`.
+Companion to case B of `examples/indenter/explicit`.
 
 ## The bargain
 

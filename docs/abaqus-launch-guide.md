@@ -96,7 +96,7 @@ subroutine is in play. Set `FLD_WORKDIR` to something like `C:\abq\run`.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run
-abaqus cae noGUI=examples/ex04_ale_indenter/model.py
+abaqus cae noGUI=examples/indenter/explicit_ale/model.py
 ```
 
 Useful environment variables, understood by every example:

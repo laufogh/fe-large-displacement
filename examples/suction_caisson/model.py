@@ -1,11 +1,11 @@
-"""Example 08 -- suction caisson installation, lab scale: jacked phase then
-suction-assisted phase.
+"""Suction caisson installation, lab scale: jacked phase then suction-assisted
+phase.
 
-    abaqus cae noGUI=examples/ex08_suction_caisson/model.py
+    abaqus cae noGUI=examples/suction_caisson/model.py
 
-The capstone. Everything from examples 01 to 07 comes together here: a large
-penetration, a thin skirt that the soil has to flow around, two phases with
-different driving mechanisms, and a choice of formulation.
+An introduction to the problem. A large penetration, a thin skirt that the
+soil has to flow around, two phases with different driving mechanisms, and a
+choice of formulation.
 
     FLD_METHOD=ale   quarter-symmetry Lagrangian soil with a two-region
                      adaptive mesh domain (default)
@@ -88,7 +88,7 @@ from common import runner                                       # noqa: E402
 from postproc import energy                                     # noqa: E402
 
 
-STUDY = 'ex08_suction_caisson'
+STUDY = 'suction_caisson'
 CASES = ['J', 'S', 'S2']
 
 CASE_DOC = {
@@ -399,7 +399,7 @@ def _add_ale(model, asm, soil_inst, P, n_soil, step_names):
     Two regions rather than one because the two zones deform for different
     reasons -- the tip shears a narrow band, the plug heaves as a body -- and
     because two well-separated regions parallelise far better than one large
-    one (example 05).
+    one (see docs/03-ale-multi-region-parallel.md).
 
     They must not touch: regions sharing a face are treated as one region.
     """
@@ -543,8 +543,8 @@ def run_case(case, workdir, P):
     if P.soil_model == 'umat' and not P.umat_source:
         raise ValueError('soil_model=umat needs FLD_UMAT_SOURCE')
 
-    model_name = 'Ex08_' + case
-    job_name = 'ex08_%s_%s' % (P.method, case)
+    model_name = 'Sc_' + case
+    job_name = 'sc_%s_%s' % (P.method, case)
     h = build(P, model_name, case)
     print('  soil elements: %d   adaptive: %d' % (h['n_soil'],
                                                   h['ale_elements']))
@@ -616,7 +616,7 @@ def run_case(case, workdir, P):
             info = ale.read_msg_activity(msg)
             row['pct_moved'] = info['avg_pct_moved']
             if not info['active']:
-                print('  *** ALE was DEFINED BUT INERT -- see example 04 ***')
+                print('  *** ALE was DEFINED BUT INERT -- see docs/02-ale-adaptive-meshing.md ***')
 
     odb = os.path.join(workdir, job_name + '.odb')
     if os.path.isfile(odb):
@@ -631,7 +631,7 @@ def main():
     os.chdir(workdir)
 
     tee = report.start_log(os.path.join(workdir, STUDY + '.log'),
-                           'EXAMPLE 08 -- SUCTION CAISSON INSTALLATION')
+                           'SUCTION CAISSON INSTALLATION')
     try:
         print(__doc__)
         P = make_params()
@@ -661,7 +661,7 @@ def main():
 
         report.banner('WHAT TO EXTRACT', level=1)
         print("""
-  abaqus python lib/postproc/history.py ex08_ale_J.odb CAISSONRP curve_J.csv
+  abaqus python lib/postproc/history.py sc_ale_J.odb CAISSONRP curve_J.csv
 
   Plot resistance against depth for case J. That is your jacked installation
   curve, and it is the reference every suction case should be read against:

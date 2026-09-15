@@ -310,7 +310,7 @@ properties of the model in an explicit setting rather than adapter defects.
 
 # Suggested next step
 
-Run `examples/ex07_umat_single_element` with `MohrCoulombAbaqus.for` as
+Run `constitutive/single_element` with `MohrCoulombAbaqus.for` as
 `FLD_UMAT_IMPLICIT`, `call_mc.f` as `FLD_UMAT_EXPLICIT`, `constants.txt` as
 `FLD_UMAT_CONSTANTS`, `FLD_UMAT_NSDV=1`, and `FLD_SDV_INIT=0`. This adds the
 actual Abaqus ABI, data-check call, element integration and ODB output to the

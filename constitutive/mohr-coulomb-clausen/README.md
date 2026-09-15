@@ -29,7 +29,7 @@ Use `MohrCoulombAbaqus.for` as the user-subroutine source for Standard and
 `call_mc.f` for Explicit. The latter includes the original UMAT and the VUMAT
 adapter. A sample material property file is provided as `constants.txt`; it is
 illustrative, not a soil calibration. Set `FLD_UMAT_NSDV=1` and
-`FLD_SDV_INIT=0` in example 07 or 08; the zero explicitly initialises the
+`FLD_SDV_INIT=0` in `constitutive/single_element` or `examples/suction_caisson`; the zero explicitly initialises the
 diagnostic SDV without requesting an `SDVINI` routine that is not in this
 bundle.
 

@@ -95,7 +95,7 @@ def general_contact_std(model, step_name, prop_name):
     """General contact for Abaqus/Standard.
 
     Available since Abaqus 6.14 and much improved since; it is the right choice
-    for the implicit baseline in example 01 so that the implicit and explicit
+    for the implicit baseline so that the implicit and explicit
     runs differ in as few respects as possible.
 
     It is *not* free in Standard the way it is in Explicit -- the all-inclusive

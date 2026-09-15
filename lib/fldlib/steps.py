@@ -39,6 +39,30 @@ looks wrong.
 from __future__ import print_function
 
 
+def implicit_step(model, name, previous='Initial', time_period=1.0,
+                  nlgeom=True, description=''):
+    """A geometrically nonlinear `*Static` step with automatic stabilisation.
+
+    Stabilisation is a fictitious viscous force. It is on because a
+    penetration analysis in Standard otherwise stops converging as soon as
+    the soil starts to fail. Check ALLSD against ALLIE afterwards. The
+    implicit models in this repository exist to show where Standard gives
+    up, not to hide that it did.
+    """
+    from abaqusConstants import ON, OFF, DISSIPATED_ENERGY_FRACTION
+    return model.StaticStep(
+        name=name, previous=previous, description=description,
+        nlgeom=ON if nlgeom else OFF,
+        timePeriod=time_period,
+        initialInc=0.005, minInc=1.0e-8, maxInc=0.05,
+        maxNumInc=1000,
+        stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
+        stabilizationMagnitude=2.0e-4,
+        adaptiveDampingRatio=0.05,
+        continueDampingFactors=ON,
+    )
+
+
 def explicit_step(model, name, previous, time_period, nlgeom=True,
                   improved_dt=True, description=''):
     """A geometrically nonlinear `*Dynamic, Explicit` step.

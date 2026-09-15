@@ -1,8 +1,8 @@
-"""The benchmark model shared by examples 01-05: a rigid strip indenter pushed
-into a soil block.
+"""The benchmark model shared by the indenter studies: a rigid strip indenter
+pushed into a soil block.
 
-One model, several formulations. Examples 01 to 05 differ only in what they do
-*to* this model -- nothing else changes -- so any difference you see in the
+One model, several formulations. The indenter scripts differ only in what they
+do *to* this model -- nothing else changes -- so any difference you see in the
 results is caused by the formulation and not by a quietly different mesh, a
 different friction coefficient or a different loading rate. That discipline is
 the whole point of a benchmark, and it is worth more than any individual result
@@ -42,8 +42,7 @@ from __future__ import print_function
 from abaqus import mdb
 from abaqusConstants import (THREE_D, DEFORMABLE_BODY, ON, OFF, C3D8R, HEX,
                              STRUCTURED, EXPLICIT, STANDARD, MIDDLE_SURFACE,
-                             FROM_SECTION, UNIFORM, CARTESIAN, STEP,
-                             DISSIPATED_ENERGY_FRACTION)
+                             FROM_SECTION, UNIFORM, CARTESIAN, STEP)
 import mesh
 import regionToolset
 
@@ -99,13 +98,10 @@ def declare(P):
 def build(P, model_name='Indenter', solver='explicit'):
     """Build the benchmark model and return a dict of handles.
 
-    `solver` is 'explicit' or 'implicit'. The implicit path exists so that
-    example 01 can show the familiar Abaqus/Standard analysis failing first --
-    that failure is the motivation for everything that follows. It uses the same
-    mesh, the same material and the same contact, and differs only in the
-    element library (STANDARD), the step type (*Static with automatic
-    stabilisation) and how the motion is prescribed (displacement, not
-    velocity).
+    `solver` is 'explicit' or 'implicit'. The implicit path uses the same
+    mesh, material and contact. It differs in the element library (STANDARD),
+    the step type (*Static with automatic stabilisation) and how the motion
+    is prescribed (displacement, not velocity).
 
     Returns::
 
@@ -152,10 +148,8 @@ def build(P, model_name='Indenter', solver='explicit'):
 
     # -- mesh --------------------------------------------------------------
     library = EXPLICIT if solver == 'explicit' else STANDARD
-    # Hourglass control is left at the element-type default here. Example 03
-    # changes it through *Section Controls instead: that is how you change it
-    # for an existing mesh, and it is the same keyword that carries distortion
-    # control.
+    # Hourglass control is left at the element-type default here. The
+    # explicit model can change it through *Section Controls.
     elem = mesh.ElemType(elemCode=C3D8R, elemLibrary=library)
     soil.setElementType(regions=(soil.cells,), elemTypes=(elem,))
     soil.setMeshControls(regions=soil.cells, elemShape=HEX,
@@ -202,20 +196,9 @@ def build(P, model_name='Indenter', solver='explicit'):
                             nlgeom=True)
         steps.smooth_ramp(model, 'Ramp', P.ramp_frac, time_period)
     else:
-        # Automatic stabilisation is switched ON deliberately. Without it this
-        # analysis stops converging almost immediately once the soil starts to
-        # fail, and the point of example 01 is to see WHERE it stops rather than
-        # to watch it stop at increment 3. Note that stabilisation is a fictitious
-        # viscous force: always check ALLSD against ALLIE afterwards.
         time_period = 1.0
-        model.StaticStep(name=step_name, previous='Initial', nlgeom=ON,
-                         timePeriod=time_period,
-                         initialInc=0.005, minInc=1.0e-8, maxInc=0.05,
-                         maxNumInc=1000,
-                         stabilizationMethod=DISSIPATED_ENERGY_FRACTION,
-                         stabilizationMagnitude=2.0e-4,
-                         adaptiveDampingRatio=0.05,
-                         continueDampingFactors=ON)
+        steps.implicit_step(model, step_name, 'Initial', time_period,
+                            nlgeom=True)
         model.TabularAmplitude(name='Ramp', timeSpan=STEP,
                                data=((0.0, 0.0), (time_period, 1.0)))
     steps.energy_output(model, step_name, interval=200)
@@ -335,3 +318,20 @@ def _soil_bcs(model, asm, soil_inst, P):
         raise RuntimeError('findAt missed the soil base face at (0, 0, %g)' % -D)
     model.EncastreBC(name='Base', createStepName='Initial',
                      region=regionToolset.Region(faces=base))
+
+
+def ale_box(P):
+    """Adaptive domain around the indenter, in assembly coordinates.
+
+    Soil top is z = 0 and penetration is -z, so the box runs from the surface
+    down past the target depth. It stops short of the model base and sides.
+    A box written in absolute coordinates is the usual way to get an empty,
+    therefore inert, adaptive domain.
+    """
+    x_mult = getattr(P, 'ale_box_x_mult', 3.0)
+    z_mult = getattr(P, 'ale_box_z_mult', 1.3)
+    half = P.ind_half * x_mult
+    deep = -P.ind_depth * z_mult
+    return dict(xmin=-half, xmax=half,
+                ymin=-P.soil_wid, ymax=P.soil_wid,
+                zmin=max(deep, -P.soil_dep + 2.0 * P.seed), zmax=0.0)

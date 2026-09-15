@@ -34,7 +34,8 @@ import re
 
 
 _PREPRINT = re.compile(r'^\*Preprint[^\n]*$', re.IGNORECASE | re.MULTILINE)
-_PROC_CARD = re.compile(r'^\*Dynamic,\s*Explicit', re.IGNORECASE)
+_PROC_CARD_EXPLICIT = re.compile(r'^\*Dynamic,\s*Explicit', re.IGNORECASE)
+_PROC_CARD_STATIC = re.compile(r'^\*Static\b', re.IGNORECASE)
 
 
 def _read(path):
@@ -133,22 +134,30 @@ def inject_section_controls(inp_path, keyword_line, section_pattern):
 # *Diagnostics
 # ---------------------------------------------------------------------------
 
-def inject_diagnostics(inp_path, mode='summary'):
-    """Insert `*Diagnostics, adaptive mesh=<mode>` after each explicit procedure card.
+def inject_diagnostics(inp_path, mode='summary', include_static=False):
+    """Insert `*Diagnostics, adaptive mesh=<mode>` after each matching procedure card.
 
     Without this, the `.msg` carries only an end-of-step summary and an ALE
     domain that never swept looks identical to one that swept perfectly. With
-    it, Abaqus writes a per-adaptive-increment block reporting mesh sweeps and
-    the percentage of nodes moved.
+    it, Abaqus/Explicit writes a per-adaptive-increment block reporting mesh
+    sweeps and the percentage of nodes moved.
 
-    Returns the number of insertions (one per `*Dynamic, Explicit` step).
+    `include_static=True` also attaches the keyword after `*Static`, which is
+    the Abaqus/Standard ALE path. Standard may still omit the Explicit-style
+    diagnostic block. The injection is then a no-harm request, not proof.
+
+    Returns the number of insertions.
     """
     lines = open(inp_path).readlines()
 
     out, inserted, i = [], 0, 0
     while i < len(lines):
         out.append(lines[i])
-        if _PROC_CARD.match(lines[i].strip()):
+        strip = lines[i].strip()
+        matched = _PROC_CARD_EXPLICIT.match(strip)
+        if not matched and include_static:
+            matched = _PROC_CARD_STATIC.match(strip)
+        if matched:
             i += 1
             # the procedure data line (increment, step period) follows the card
             if i < len(lines) and not lines[i].lstrip().startswith('*'):
@@ -161,8 +170,9 @@ def inject_diagnostics(inp_path, mode='summary'):
 
     if not inserted:
         raise RuntimeError(
-            'no "*Dynamic, Explicit" procedure card in %s -- nothing to attach '
-            '*Diagnostics to. Is this an Abaqus/Standard deck?' % inp_path)
+            'no matching procedure card in %s -- nothing to attach '
+            '*Diagnostics to. Explicit decks need "*Dynamic, Explicit"; '
+            'Standard ALE decks need include_static=True.' % inp_path)
 
     _write(inp_path, ''.join(out))
     return inserted
@@ -189,7 +199,7 @@ def inject_extra_ale_domains(inp_path, elsets, controls='ALE_BC',
     This is not a workaround for its own sake. Several *well-separated* regions
     are placed in different parallel domains by the packager, whereas one large
     region is consolidated into a single domain and unbalances the whole
-    decomposition. See docs/03-ale-multi-region-parallel.md and example 05.
+    decomposition. See docs/03-ale-multi-region-parallel.md.
 
     `elsets` are the additional assembly-level element set names. Each must be
     separated from the others by at least one band of non-adaptive elements --

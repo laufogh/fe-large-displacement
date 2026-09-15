@@ -1,10 +1,10 @@
-# Example 07 - single-element constitutive check
+# Single-element constitutive check
 
 Verify a UMAT/VUMAT on one element, in seconds, before putting it in a 50 000-element analysis where debugging it costs weeks.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run
-abaqus cae noGUI=examples/ex07_umat_single_element/model.py
+abaqus cae noGUI=constitutive/single_element/model.py
 ```
 
 Add `set FLD_SUBMIT=0` to build and verify the decks without solving.
@@ -50,7 +50,7 @@ Configure with `FLD_UMAT_IMPLICIT`, `FLD_UMAT_EXPLICIT`, `FLD_UMAT_CONSTANTS` an
 ## Reading
 
 * [06-constitutive-models.md](../../docs/06-constitutive-models.md)
-* [README.md](../../constitutive/README.md)
+* [README.md](../README.md)
 
 The full explanation is the module docstring at the top of
 [`model.py`](model.py) - it is written to be read.

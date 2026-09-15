@@ -4,20 +4,17 @@ Abaqus scripts, documentation and measured findings for **large-displacement
 finite element analysis in geotechnics** — ALE adaptive meshing, Coupled
 Eulerian-Lagrangian, and a worked suction caisson installation.
 
-Eight examples, from "watch an ordinary Lagrangian analysis fail" to "install a
-suction caisson", each one runnable in a single command.
+Five formulations of one indenter problem, plus a suction caisson
+installation, each runnable in a single command.
 
 ```bash
 set FLD_WORKDIR=C:\abq\run
-abaqus cae noGUI=examples/ex01_lagrangian_limit/model.py
+abaqus cae noGUI=examples/indenter/implicit/model.py
 ```
 
-> **Status: the code has never been run.** It was written on a machine without
-> Abaqus. The Python parses and the deck-editing logic is unit-tested, but no
-> Abaqus API call has been executed. See [`briefs/`](briefs/) for the test plan
-> and [`briefs/KNOWN-UNCERTAINTIES.md`](briefs/KNOWN-UNCERTAINTIES.md) for an
-> honest list of what is most likely wrong. The **findings in [`docs/`](docs/)
-> are measured results** from real runs on Abaqus 2021 and are trustworthy.
+> The findings in [`docs/`](docs/) are measured results from Abaqus 2021.
+> On a new machine, start with `FLD_SUBMIT=0` so the decks are written and
+> checked before anything is solved.
 
 ---
 
@@ -35,29 +32,25 @@ wrong. This repository writes it down, with the evidence.
 
 ## The ladder
 
-| # | Approach | Example | Where it stops |
+| # | Approach | Model | Where it stops |
 |---|---|---|---|
-| 1 | Implicit Lagrangian | [`ex01`](examples/ex01_lagrangian_limit/) | convergence, at a few percent of the diameter |
-| 2 | Explicit Lagrangian | [`ex01`](examples/ex01_lagrangian_limit/) | element distortion |
-| — | Making explicit honestly quasi-static | [`ex02`](examples/ex02_quasi_static/) | — |
-| 3 | Section controls | [`ex03`](examples/ex03_section_controls/) | same failure, deferred |
-| 4 | ALE adaptive meshing | [`ex04`](examples/ex04_ale_indenter/), [`ex05`](examples/ex05_ale_parallel/) | material changing its topological relationship to the mesh |
-| 5 | CEL | [`ex06`](examples/ex06_cel_indenter/) | nothing — but the free surface goes diffuse |
-| — | Constitutive models | [`ex07`](examples/ex07_umat_single_element/) | — |
-| ★ | **Suction caisson installation** | [`ex08`](examples/ex08_suction_caisson/) | — |
+| 1 | Implicit Lagrangian | [`indenter/implicit`](examples/indenter/implicit/) | convergence, at a few percent of the diameter |
+| 2 | Implicit ALE | [`indenter/implicit_ale`](examples/indenter/implicit_ale/) | Standard ALE is limited; usually the same wall |
+| 3 | Explicit Lagrangian | [`indenter/explicit`](examples/indenter/explicit/) | element distortion |
+| 4 | Explicit ALE | [`indenter/explicit_ale`](examples/indenter/explicit_ale/) | material changing its topological relationship to the mesh |
+| 5 | Explicit CEL | [`indenter/explicit_cel`](examples/indenter/explicit_cel/) | nothing, but the free surface goes diffuse |
+| ★ | Suction caisson installation | [`suction_caisson`](examples/suction_caisson/) | seepage through the plug is omitted |
 
-Examples 01–05 all use **the same benchmark model** — a rigid strip indenter in a
-soil block. Nothing changes between them except the technique under study, so any
-difference in the result is caused by the technique and not by a quietly
-different mesh.
+The five indenter models use **the same benchmark** — a rigid strip indenter in a
+soil block. Nothing changes between them except the technique under study.
+
+A single-element UMAT/VUMAT check lives in [`constitutive/single_element/`](constitutive/single_element/).
 
 ## Start here
 
-1. [`docs/00-why-large-displacement.md`](docs/00-why-large-displacement.md) — the
-   problem, the ladder, and how to choose a rung.
-2. [`docs/01-explicit-quasi-static.md`](docs/01-explicit-quasi-static.md) — the
-   acceptance test you will use on every single explicit run.
-3. Run `examples/ex01_lagrangian_limit` and watch it fail.
+1. [`teaching/software.pdf`](teaching/software.pdf) — how to read Abaqus/CAE, Standard, Explicit, and this repository.
+2. [`teaching/formulations.pdf`](teaching/formulations.pdf) — the code that changes at each rung.
+3. Run `examples/indenter/implicit` and watch it fail.
 
 ## The three silent failures
 
@@ -81,6 +74,8 @@ assertion, and every example uses it.
 
 | File | Contents |
 |---|---|
+| [`software.pdf`](teaching/software.pdf) | how to read Abaqus/CAE, Standard, Explicit, and this repository |
+| [`formulations.pdf`](teaching/formulations.pdf) | the code that changes from implicit to CEL |
 | [`00-why-large-displacement.md`](docs/00-why-large-displacement.md) | the problem and the ladder |
 | [`01-explicit-quasi-static.md`](docs/01-explicit-quasi-static.md) | rate scaling, mass scaling, the energy acceptance test |
 | [`02-ale-adaptive-meshing.md`](docs/02-ale-adaptive-meshing.md) | **measured.** Exact keywords, what CAE writes and omits, two documentation errors found, and how to prove ALE actually ran |
@@ -99,13 +94,15 @@ solver won and the disagreement is recorded.
 ## Layout
 
 ```
-docs/           the written-down knowledge
-examples/       eight runnable studies; examples/common/ holds the shared benchmark
-lib/fldlib/     model-building helpers (runs inside abaqus cae)
-lib/postproc/   ODB post-processing (runs inside abaqus python)
-constitutive/   UMAT/VUMAT sources -- SEE THE LICENCE NOTE BELOW
-tools/          standalone utilities
-briefs/         work orders for the agent that will test all of this
+teaching/                  two PDFs: how to read the software, and the code deltas
+docs/                      measured findings and the written-down knowledge
+examples/indenter/         five formulations of one strip-indenter problem
+examples/suction_caisson/  introduction to suction caisson installation
+examples/common/           shared indenter builder and run loop
+lib/fldlib/                model-building helpers (runs inside abaqus cae)
+lib/postproc/              ODB post-processing (runs inside abaqus python)
+constitutive/              UMAT/VUMAT sources -- SEE THE LICENCE NOTE BELOW
+tools/                     standalone utilities
 ```
 
 `lib/fldlib` is deliberately small and readable. Every function is a thin,
@@ -143,13 +140,12 @@ python -m pytest -q
 ```
 
 GitHub Actions runs this suite on every push and pull request. It does not
-replace the Abaqus verification briefs: the CAE API calls and solver behavior
-still require the target Abaqus installation.
+replace a data-check on the target Abaqus installation.
 
 ## Licence
 
 **MIT** for the repository-authored files in `docs/`, `examples/`, `lib/`,
-`tools/`, `briefs/`, `tests/`, and `.github/`, plus the root project files.
+`tools/`, `tests/`, `teaching/`, and `.github/`, plus the root project files.
 
 **Not MIT** for `constitutive/`. Each subdirectory there carries its own licence
 and provenance:

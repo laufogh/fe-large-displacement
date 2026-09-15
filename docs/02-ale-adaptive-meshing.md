@@ -11,7 +11,7 @@
 
 Verified 2026-08-25 on **Abaqus 2021** (Windows, `explicitPrecision=DOUBLE_PLUS_PACK`,
 `nodalOutputPrecision=FULL`, serial single-domain). All job artifacts in
-`$FLD_WORKDIR`; companion script `examples/ex04_ale_indenter/model.py` runs
+`$FLD_WORKDIR`; companion script `examples/indenter/explicit_ale/model.py` runs
 all five cases A–E in one invocation.
 
 This is an **implementation verification only**: nothing here assesses whether ALE changes the
@@ -459,7 +459,7 @@ Documented (section "Transferring results between Abaqus/Explicit and Abaqus/Sta
 ```python
 # ---------------------------------------------------------------------------
 # Restricted ALE adaptive mesh domain for the production soil, ported from
-# examples/ex04_ale_indenter/model.py case C. All verified on Abaqus 2021.
+# examples/indenter/explicit_ale/model.py case C. All verified on Abaqus 2021.
 #
 # Requirements on the model:
 #   - soil instance is first-order reduced-integration solids (C3D8R)
@@ -518,7 +518,7 @@ push.AdaptiveMeshDomain(region=a.sets['ALE_Box'], controls='ALE_BC',
 
 # 4) after writeInput(), inject *Diagnostics, adaptive mesh=summary after the
 #    *Dynamic, Explicit procedure card so the .msg reports per-increment
-#    activity (step-dependent input; see examples/ex04_ale_indenter/model.py
+#    activity (step-dependent input; see examples/indenter/explicit_ale/model.py
 #    inject_diagnostics()).
 ```
 

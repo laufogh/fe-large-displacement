@@ -12,7 +12,7 @@
 **Date:** 2026-08-27
 **Model:** standalone elastic soil block (0.5 × 0.5 × 0.2 m, ~50 000 C3D8R), rigid-plate indenter, general contact
 **Setup:** `cpus = 15`, `domains = 15`, `explicitPrecision = DOUBLE_PLUS_PACK`, domain-level parallelization
-**Runs:** all five cases from `examples/ex05_ale_parallel/model.py`, each deliberately terminated after a few hundred increments to preserve the per-domain `.msg.N` files
+**Runs:** all five cases from the former `examples/ex05_ale_parallel` script, each deliberately terminated after a few hundred increments to preserve the per-domain `.msg.N` files. That script is not a separate model in the current tree. The findings stand. The production pattern (several well-separated regions) is used in `examples/suction_caisson`.
 **Scratch directory:** `$FLD_WORKDIR`
 
 ---
@@ -152,7 +152,7 @@ So touching regions are not merged into one adaptive smoothing domain; they are 
 
 ## 9. Files
 
-- Script: `examples/ex05_ale_parallel/model.py` (single invocation, per-case exception isolation, per-case log banners)
+- Script: the former `examples/ex05_ale_parallel/model.py` (single invocation, per-case exception isolation, per-case log banners)
 - Post-processed report: ``$FLD_WORKDIR`\ale_multi_region_parallel_post.txt`
 - Per-case logs: `multireg_<case>_case.log` in the same directory
 - Model/deck/result files: `multireg_<case>.{inp,dat,sta,msg.N,odb}` in the same directory

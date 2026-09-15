@@ -92,7 +92,7 @@ set FLD_UMAT_IMPLICIT=<repo>\constitutive\hypoplasticity-staubach\call_implicit.
 set FLD_UMAT_EXPLICIT=<repo>\constitutive\hypoplasticity-staubach\call_explicit.f
 set FLD_UMAT_CONSTANTS=<repo>\constitutive\hypoplasticity-staubach\constants.txt
 set FLD_UMAT_NSDV=14
-abaqus cae noGUI=examples/ex07_umat_single_element/model.py
+abaqus cae noGUI=constitutive/single_element/model.py
 ```
 
 Check the `*Depvar` count against what the subroutine actually writes — the
