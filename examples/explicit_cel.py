@@ -32,12 +32,13 @@ SEED = 0.010
 IND_HALF = 0.0225
 IND_THICK = 0.010
 IND_DEPTH = 0.150
-IND_VEL = 1.0
+IND_VEL = 0.1            # m/s. Slow enough that ALLKE/ALLIE stays small.
 RAMP_FRAC = 0.05
 VOID = 0.5 * IND_DEPTH   # empty space above the soil. do not set this to 0
 
 SOIL_E = 20.0e6
 SOIL_NU = 0.30
+SOIL_SY = 50.0e3         # Pa, von Mises, no hardening
 SOIL_RHO = 1651.6
 FRICTION = 0.5
 
@@ -87,6 +88,7 @@ indenter.BaseSolidExtrude(sketch=sketch_i, depth=IND_THICK)
 soil_mat = model.Material(name='SoilMat')
 soil_mat.Density(table=((SOIL_RHO,),))
 soil_mat.Elastic(table=((SOIL_E, SOIL_NU),))
+soil_mat.Plastic(table=((SOIL_SY, 0.0),))
 steel = model.Material(name='SteelMat')
 steel.Density(table=((7850.0,),))
 steel.Elastic(table=((210.0e9, 0.3),))

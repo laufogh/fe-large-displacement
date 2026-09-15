@@ -39,6 +39,7 @@ IND_DEPTH = 0.150        # m, how far to push (it will not get this far)
 
 SOIL_E = 20.0e6          # Pa
 SOIL_NU = 0.30
+SOIL_SY = 50.0e3         # Pa, von Mises, no hardening
 SOIL_RHO = 1651.6        # kg/m3  (unused by *Static, kept so the files match)
 FRICTION = 0.5
 
@@ -78,10 +79,11 @@ indenter = model.Part(name='Indenter', dimensionality=THREE_D,
                       type=DEFORMABLE_BODY)
 indenter.BaseSolidExtrude(sketch=sketch_i, depth=IND_THICK)
 
-# Elastic soil. Density is written so this file matches the Explicit ones.
+# von Mises soil. Density is written so this file matches the Explicit ones.
 soil_mat = model.Material(name='SoilMat')
 soil_mat.Density(table=((SOIL_RHO,),))
 soil_mat.Elastic(table=((SOIL_E, SOIL_NU),))
+soil_mat.Plastic(table=((SOIL_SY, 0.0),))
 steel = model.Material(name='SteelMat')
 steel.Density(table=((7850.0,),))
 steel.Elastic(table=((210.0e9, 0.3),))
