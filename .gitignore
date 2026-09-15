@@ -80,7 +80,7 @@ results/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
-!teaching/*.pdf
+!documentation/*.pdf
 
 # Editors / OS
 # ---------------------------------------------------------------------------

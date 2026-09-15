@@ -4,8 +4,8 @@ Abaqus models for large-displacement geotechnics.
 
 ## Start here
 
-1. [`teaching/software.pdf`](teaching/software.pdf) — how to read the software.
-2. [`teaching/formulations.pdf`](teaching/formulations.pdf) — what to change at each formulation.
+1. [`documentation/software.pdf`](documentation/software.pdf) — how to read the software.
+2. [`documentation/formulations.pdf`](documentation/formulations.pdf) — what to change at each formulation.
 3. Run `examples/implicit.py` and watch it fail.
 
 ```bash
