@@ -34,7 +34,7 @@ Each script is complete. Open two and diff them.
 
 Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
 
-Side view in the plane of the strip. Displacement magnitude on the Lagrangian jobs; Eulerian volume fraction of soil on CEL.
+Side view in the plane of the strip. Deformed mesh on the Lagrangian and ALE jobs; Eulerian soil volume on CEL.
 
 | implicit | implicit ALE | explicit |
 |:---:|:---:|:---:|
