@@ -66,7 +66,7 @@ if var == 'EVF':
             break
     if evf is None:
         for name in fields:
-            if name.upper() == 'EVF_VOID':
+            if 'EVF' in name.upper() or 'EULERIAN' in name.upper():
                 evf = name
                 break
     if evf is None:
@@ -76,16 +76,19 @@ if var == 'EVF':
     vp.odbDisplay.display.setValues(plotState=(CONTOURS_ON_DEF,))
     vp.odbDisplay.setPrimaryVariable(
         variableLabel=evf, outputPosition=INTEGRATION_POINT)
-    if 'SoilVoid' not in session.spectrums:
-        session.Spectrum(name='SoilVoid', colors=('#FFFFFF', '#00B050'))
     vp.odbDisplay.contourOptions.setValues(
-        spectrum='SoilVoid',
         maxAutoCompute=OFF, maxValue=1.0,
         minAutoCompute=OFF, minValue=0.0)
-    log.write('contour %s INTEGRATION_POINT 0-1 (SoilVoid spectrum)\n' % evf)
+    log.write('contour %s INTEGRATION_POINT 0-1\n' % evf)
 else:
-    vp.odbDisplay.display.setValues(plotState=(DEFORMED,))
-    log.write('plotState=DEFORMED (no colormap)\n')
+    vp.odbDisplay.display.setValues(plotState=(CONTOURS_ON_DEF,))
+    vp.odbDisplay.setPrimaryVariable(
+        variableLabel='U', outputPosition=NODAL,
+        refinement=(INVARIANT, 'Magnitude'))
+    vp.odbDisplay.contourOptions.setValues(
+        maxAutoCompute=OFF, maxValue=0.16,
+        minAutoCompute=OFF, minValue=0.0)
+    log.write('contour U magnitude 0-0.16 m\n')
 
 vp.odbDisplay.commonOptions.setValues(
     visibleEdges=EXTERIOR, renderStyle=SHADED,
