@@ -34,15 +34,15 @@ Each script is complete. Open two and diff them.
 
 Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
 
-The indenter motion is prescribed and the same on every Lagrangian job.
+Side view in the plane of the strip. Displacement magnitude on the Lagrangian jobs; Eulerian volume fraction of soil on CEL.
 
-![Indenter motion](media/foundation.gif)
+| implicit | implicit ALE | explicit |
+|:---:|:---:|:---:|
+| ![implicit](media/soil-implicit.gif) | ![implicit ALE](media/soil-implicit-ale.gif) | ![explicit](media/soil-explicit.gif) |
 
-Soil with the mesh drawn. Lagrangian distorts, ALE remeshes, CEL keeps a fixed Eulerian grid (the grid you see does not deform).
-
-![Lagrangian soil mesh](media/soil-lagrangian.gif)
-![ALE soil mesh](media/soil-ale.gif)
-![CEL Eulerian grid](media/soil-cel.gif)
+| explicit ALE | explicit CEL |
+|:---:|:---:|
+| ![explicit ALE](media/soil-explicit-ale.gif) | ![explicit CEL](media/soil-cel.gif) |
 
 ## User materials
 

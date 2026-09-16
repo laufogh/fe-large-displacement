@@ -1,12 +1,14 @@
-"""Dump a PNG sequence of the deformed mesh from an ODB.
+"""PNG sequence of soil deformation, side view (XZ), penetration downward.
 
     set FLD_ANIM_ODB=C:\\abq\\run\\implicit.odb
-    set FLD_ANIM_INST=SoilInst
-    set FLD_ANIM_OUT=C:\\abq\\run\\frames_soil
+    set FLD_ANIM_VAR=U
+    set FLD_ANIM_OUT=...\\media\\frames\\implicit
     set FLD_ANIM_N=40
     abaqus viewer noGUI=lib/postproc/animate.py
 
-FLD_ANIM_INST is a substring match on the ODB instance name (blank = all).
+FLD_ANIM_VAR is U (displacement magnitude) or EVF (Eulerian volume fraction).
+Show soil and indenter. Camera looks along +Y so the strip is seen in plane
+and the indenter moves down the page.
 """
 from __future__ import print_function
 
@@ -16,12 +18,11 @@ from abaqus import *
 from abaqusConstants import *
 from driverUtils import executeOnCaeStartup
 import visualization
-import displayGroupOdbToolset as dgo
 
 executeOnCaeStartup()
 
 odb_path = os.environ['FLD_ANIM_ODB']
-want_inst = os.environ.get('FLD_ANIM_INST', '').strip()
+var = os.environ.get('FLD_ANIM_VAR', 'U').strip().upper()
 out_dir = os.environ['FLD_ANIM_OUT']
 n_want = int(os.environ.get('FLD_ANIM_N', '40'))
 
@@ -31,40 +32,71 @@ if not os.path.isdir(out_dir):
 odb = visualization.openOdb(path=odb_path)
 vp = session.viewports['Viewport: 1']
 vp.setValues(displayedObject=odb)
+try:
+    vp.setValues(titleBar=OFF)
+except Exception:
+    pass
 vp.viewportAnnotationOptions.setValues(
-    triad=OFF, title=OFF, state=OFF, legend=OFF, compass=OFF)
+    triad=OFF, title=OFF, state=OFF, legend=ON, compass=OFF,
+    legendBox=OFF)
 
-inst_names = list(odb.rootAssembly.instances.keys())
 log = open(os.path.join(out_dir, 'animate.log'), 'w')
-log.write('instances: %s\n' % inst_names)
-
-if want_inst:
-    match = [n for n in inst_names if want_inst.upper() in n.upper()]
-    if not match:
-        log.write('no instance matching %r\n' % want_inst)
-        log.close()
-        raise RuntimeError('no instance matching %r in %s' % (want_inst, inst_names))
-    leaf = dgo.LeafFromPartInstance(partInstanceName=(match[0],))
-    vp.odbDisplay.displayGroup.replace(leaf=leaf)
-    log.write('showing %s\n' % match[0])
-
 fields = []
 try:
     fields = list(odb.steps.values()[-1].frames[-1].fieldOutputs.keys())
 except Exception:
     pass
-log.write('fields: %s\n' % fields[:20])
+log.write('fields: %s\n' % fields[:24])
 
-vp.odbDisplay.display.setValues(plotState=(DEFORMED,))
+vp.odbDisplay.display.setValues(plotState=(CONTOURS_ON_DEF,))
+if var == 'EVF':
+    evf = None
+    for name in fields:
+        u = name.upper()
+        if 'EVF' in u and 'SOIL' in u:
+            evf = name
+            break
+    if evf is None:
+        for name in fields:
+            if name.upper() == 'EVF_VOID':
+                evf = name
+                break
+    if evf is None:
+        log.write('no EVF field\n')
+        log.close()
+        raise RuntimeError('no EVF field in %s' % fields)
+    vp.odbDisplay.setPrimaryVariable(
+        variableLabel=evf, outputPosition=INTEGRATION_POINT)
+    vp.odbDisplay.contourOptions.setValues(
+        maxAutoCompute=OFF, maxValue=1.0,
+        minAutoCompute=OFF, minValue=0.0)
+    log.write('contour %s INTEGRATION_POINT 0-1\n' % evf)
+else:
+    vp.odbDisplay.setPrimaryVariable(
+        variableLabel='U', outputPosition=NODAL,
+        refinement=(INVARIANT, 'Magnitude'))
+    vp.odbDisplay.contourOptions.setValues(
+        maxAutoCompute=OFF, maxValue=0.16,
+        minAutoCompute=OFF, minValue=0.0)
+    log.write('contour U magnitude 0-0.16 m\n')
 
 vp.odbDisplay.commonOptions.setValues(
     visibleEdges=EXTERIOR, renderStyle=SHADED,
     deformationScaling=UNIFORM, uniformScaleFactor=1.0)
-vp.view.setValues(session.views['Iso'])
+
+# Look along +Y at the XZ plane. +Z is up, so penetration (-Z) is down.
+vp.view.setValues(
+    cameraPosition=(0.0, 1.0, 0.0),
+    cameraTarget=(0.0, 0.0, 0.0),
+    cameraUpVector=(0.0, 0.0, 1.0))
+try:
+    vp.view.setValues(projection=PARALLEL)
+except Exception:
+    pass
 vp.view.fitView()
 
-session.printOptions.setValues(vpDecorations=OFF, reduceColors=False)
-session.pngOptions.setValues(imageSize=(720, 480))
+session.printOptions.setValues(vpDecorations=ON, reduceColors=False)
+session.pngOptions.setValues(imageSize=(640, 400))
 
 step_name = odb.steps.keys()[-1]
 frames = odb.steps[step_name].frames
