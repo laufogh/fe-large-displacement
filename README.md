@@ -34,6 +34,16 @@ Each script is complete. Open two and diff them.
 
 Resistance against penetration for the five indenters (same mesh, von Mises soil). Explicit force is a short moving average.
 
+The indenter motion is prescribed and the same on every Lagrangian job.
+
+![Indenter motion](media/foundation.gif)
+
+Soil with the mesh drawn. Lagrangian distorts, ALE remeshes, CEL keeps a fixed Eulerian grid (the grid you see does not deform).
+
+![Lagrangian soil mesh](media/soil-lagrangian.gif)
+![ALE soil mesh](media/soil-ale.gif)
+![CEL Eulerian grid](media/soil-cel.gif)
+
 ## User materials
 
 [`constitutive/`](constitutive/) has two models. Each is a Standard UMAT and an Explicit VUMAT, dry or saturated (pore pressure on the temperature DOF). Point `user=` at the call file in the folder. The example scripts do not use these.

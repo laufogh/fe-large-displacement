@@ -1,4 +1,7 @@
 # ---------------------------------------------------------------------------
+# PNG sequences for GIFs. Commit the GIF, not the frames.
+media/frames/
+
 # Abaqus session / runtime artifacts
 # ---------------------------------------------------------------------------
 abaqus.rpy
