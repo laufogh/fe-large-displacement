@@ -136,6 +136,7 @@ model.HistoryOutputRequest(
 model.HistoryOutputRequest(
     name='RP', createStepName='Push', region=asm.sets['IndRP'],
     variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
+model.fieldOutputRequests['F-Output-1'].setValues(numIntervals=100)
 
 zc = -SOIL_DEP / 2.0
 for name, point, dof in (

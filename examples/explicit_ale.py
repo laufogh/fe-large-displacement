@@ -131,6 +131,7 @@ model.HistoryOutputRequest(
 model.HistoryOutputRequest(
     name='RP', createStepName='Push', region=asm.sets['IndRP'],
     variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
+model.fieldOutputRequests['F-Output-1'].setValues(numIntervals=100)
 
 zc = -SOIL_DEP / 2.0
 for name, point, dof in (
@@ -182,10 +183,10 @@ asm.Set(name='ALE_Box', elements=ale_elems)
 print('ALE elements: %d' % len(asm.sets['ALE_Box'].elements))
 
 model.AdaptiveMeshControl(name='ALE_BC', smoothingPriority=UNIFORM)
-# Explicit has initial mesh sweeps. Default frequency=10, meshSweeps=1.
+# Explicit has initial mesh sweeps. Remesh frequently with multiple sweeps.
 model.steps['Push'].AdaptiveMeshDomain(
     region=asm.sets['ALE_Box'], controls='ALE_BC',
-    frequency=10, meshSweeps=1, initialMeshSweeps=5)
+    frequency=2, meshSweeps=3, initialMeshSweeps=10)
 
 
 # --- write, check, maybe submit -------------------------------------------
@@ -226,8 +227,13 @@ _inject_diagnostics(inp)
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')
 if submit:
-    job.submit(consistencyChecking=OFF)
-    job.waitForCompletion()
+    job_inp = mdb.JobFromInputFile(
+        name=JOB_NAME, inputFileName=inp, type=ANALYSIS,
+        explicitPrecision=DOUBLE_PLUS_PACK, nodalOutputPrecision=FULL,
+        numCpus=1, numDomains=1, parallelizationMethodExplicit=DOMAIN,
+        multiprocessingMode=DEFAULT, memory=90, memoryUnits=PERCENTAGE)
+    job_inp.submit(consistencyChecking=OFF)
+    job_inp.waitForCompletion()
     print('job finished. in the .msg, look for nodes moved. zero means inert.')
 else:
     print('FLD_SUBMIT=0: deck written, not submitted.')

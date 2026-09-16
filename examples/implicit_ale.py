@@ -181,10 +181,10 @@ asm.Set(name='ALE_Box', elements=ale_elems)
 print('ALE elements: %d' % len(asm.sets['ALE_Box'].elements))
 
 model.AdaptiveMeshControl(name='ALE_BC', smoothingPriority=UNIFORM)
-# Standard has no initial mesh sweeps. Do not pass initialMeshSweeps.
+# Standard has no initial mesh sweeps. Remesh every increment (frequency=1).
 model.steps['Push'].AdaptiveMeshDomain(
     region=asm.sets['ALE_Box'], controls='ALE_BC',
-    frequency=10, meshSweeps=1)
+    frequency=1, meshSweeps=3)
 
 
 # --- write, check, maybe submit -------------------------------------------
@@ -225,8 +225,12 @@ _inject_hourglass(inp)
 submit = os.environ.get('FLD_SUBMIT', '1').strip().lower() not in (
     '0', 'false', 'no', 'off')
 if submit:
-    job.submit(consistencyChecking=OFF)
-    job.waitForCompletion()
+    job_inp = mdb.JobFromInputFile(
+        name=JOB_NAME, inputFileName=inp, type=ANALYSIS,
+        numCpus=1, multiprocessingMode=DEFAULT,
+        memory=90, memoryUnits=PERCENTAGE)
+    job_inp.submit(consistencyChecking=OFF)
+    job_inp.waitForCompletion()
     print('job finished. look at the .sta for the abort message.')
 else:
     print('FLD_SUBMIT=0: deck written, not submitted.')

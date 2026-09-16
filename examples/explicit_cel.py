@@ -165,7 +165,7 @@ model.HistoryOutputRequest(
     variables=('U1', 'U2', 'U3', 'RF1', 'RF2', 'RF3'), numIntervals=500)
 model.fieldOutputRequests['F-Output-1'].setValues(
     variables=('S', 'PE', 'LE', 'U', 'V', 'RF', 'EVF', 'STATUS'),
-    numIntervals=20)
+    numIntervals=100)
 
 # Walls: zero normal motion on sides and base. The top is open.
 top = H
