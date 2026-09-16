@@ -12,6 +12,7 @@ and the indenter moves down the page.
 """
 from __future__ import print_function
 
+import glob
 import os
 
 from abaqus import *
@@ -21,13 +22,21 @@ import visualization
 
 executeOnCaeStartup()
 
-odb_path = os.environ['FLD_ANIM_ODB']
+odb_path = os.environ['FLD_ANIM_ODB'].strip()
 var = os.environ.get('FLD_ANIM_VAR', 'U').strip().upper()
-out_dir = os.environ['FLD_ANIM_OUT']
-n_want = int(os.environ.get('FLD_ANIM_N', '40'))
+out_dir = os.environ['FLD_ANIM_OUT'].strip()
+n_want = int(os.environ.get('FLD_ANIM_N', '21').strip())
+sync_mode = os.environ.get('FLD_ANIM_SYNC', 'disp').strip().lower()
+max_depth_target = float(os.environ.get('FLD_ANIM_MAX_DEPTH', '0.14625').strip())
 
 if not os.path.isdir(out_dir):
     os.makedirs(out_dir)
+else:
+    for old_f in glob.glob(os.path.join(out_dir, 'frame_*.png')):
+        try:
+            os.remove(old_f)
+        except Exception:
+            pass
 
 odb = visualization.openOdb(path=odb_path)
 vp = session.viewports['Viewport: 1']
@@ -101,19 +110,72 @@ session.pngOptions.setValues(imageSize=(640, 400))
 step_name = odb.steps.keys()[-1]
 frames = odb.steps[step_name].frames
 n = len(frames)
-stride = max(1, (n - 1) // max(1, n_want - 1))
-picked = [frames[i] for i in range(0, n, stride)][:n_want]
-if picked[-1] is not frames[-1]:
-    picked[-1] = frames[-1]
 
-log.write('step=%s nframes=%d stride=%d picked=%d\n'
-          % (step_name, n, stride, len(picked)))
+# Find indenter instance to query penetration depth
+inst_keys = list(odb.rootAssembly.instances.keys())
+ind_key = None
+for k in inst_keys:
+    if 'IND' in k.upper():
+        ind_key = k
+        break
 
-for i, fr in enumerate(picked):
-    vp.odbDisplay.setFrame(step=step_name, frame=fr.frameId)
+frame_depths = []
+for idx, fr in enumerate(frames):
+    depth = None
+    if 'U' in fr.fieldOutputs and ind_key:
+        ind_inst = odb.rootAssembly.instances[ind_key]
+        sub = fr.fieldOutputs['U'].getSubset(region=ind_inst)
+        if sub.values:
+            v = sub.values[0]
+            try:
+                d = v.dataDouble
+            except Exception:
+                d = v.data
+            depth = -d[2]
+    frame_depths.append(depth)
+
+has_valid_depths = any(d is not None for d in frame_depths)
+
+if sync_mode == 'disp' and has_valid_depths:
+    clean_depths = [d if d is not None else 0.0 for d in frame_depths]
+    target_depths = [i * max_depth_target / float(max(1, n_want - 1))
+                     for i in range(n_want)]
+    picked_indices = []
+    for td in target_depths:
+        best_idx = 0
+        best_diff = 1e9
+        for idx, fd in enumerate(clean_depths):
+            diff = abs(fd - td)
+            if diff < best_diff:
+                best_diff = diff
+                best_idx = idx
+        picked_indices.append(best_idx)
+    log.write('mode=disp nframes=%d target_frames=%d max_target=%.4f m\n'
+              % (n, n_want, max_depth_target))
+    log.write('target_depths_mm: %s\n'
+              % [round(td * 1000.0, 2) for td in target_depths])
+    log.write('actual_depths_mm: %s\n'
+              % [round(clean_depths[idx] * 1000.0, 2) for idx in picked_indices])
+else:
+    stride = max(1, (n - 1) // max(1, n_want - 1))
+    picked_indices = [i for i in range(0, n, stride)][:n_want]
+    if picked_indices[-1] != n - 1:
+        picked_indices[-1] = n - 1
+    log.write('mode=time nframes=%d stride=%d picked=%d\n'
+              % (n, stride, len(picked_indices)))
+
+log.write('step=%s picked_indices=%s\n' % (step_name, picked_indices))
+
+for i, f_idx in enumerate(picked_indices):
+    fr = frames[f_idx]
+    vp.odbDisplay.setFrame(step=step_name, frame=f_idx)
     path = os.path.join(out_dir, 'frame_%03d' % i)
     session.printToFile(fileName=path, format=PNG, canvasObjects=(vp,))
-    log.write('wrote %s frameId=%s t=%s\n' % (path, fr.frameId, fr.frameValue))
+    depth_str = (' depth_mm=%.2f' % (frame_depths[f_idx] * 1000.0)
+                 if frame_depths[f_idx] is not None else '')
+    log.write('wrote %s frameIdx=%d frameId=%s t=%s%s\n'
+              % (path, f_idx, fr.frameId, fr.frameValue, depth_str))
 
 log.close()
-print('wrote %d frames to %s' % (len(picked), out_dir))
+odb.close()
+print('wrote %d frames to %s' % (len(picked_indices), out_dir))
