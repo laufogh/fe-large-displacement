@@ -38,11 +38,11 @@ Side view in the plane of the strip. Displacement magnitude on the Lagrangian jo
 
 | implicit | implicit ALE | explicit |
 |:---:|:---:|:---:|
-| ![implicit](media/soil-implicit.gif) | ![implicit ALE](media/soil-implicit-ale.gif) | ![explicit](media/soil-explicit.gif) |
+| ![implicit](media/soil-implicit.gif?raw=true) | ![implicit ALE](media/soil-implicit-ale.gif?raw=true) | ![explicit](media/soil-explicit.gif?raw=true) |
 
 | explicit ALE | explicit CEL |
 |:---:|:---:|
-| ![explicit ALE](media/soil-explicit-ale.gif) | ![explicit CEL](media/soil-cel.gif) |
+| ![explicit ALE](media/soil-explicit-ale.gif?raw=true) | ![explicit CEL](media/soil-cel.gif?raw=true) |
 
 ## User materials
 
